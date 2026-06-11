@@ -1,0 +1,56 @@
+// prog1_calculator.src
+// Demonstrates: const, var, val, int, float, input, print,
+//               assignment, if-else, arithmetic expressions
+
+const int MAX_TRIES = 3;
+const float PI = 3.14159;
+
+void main() {
+    var int a, b, result;
+    var float radius, area;
+    val string label = "Result";
+
+    print("=== Basic Calculator ===");
+    input(a, b);
+
+    result = a + b;
+    print("Addition:", label, result);
+
+    result = a - b;
+    print("Subtraction:", label, result);
+
+    result = a * b;
+    print("Multiplication:", label, result);
+
+    if (b != 0) {
+        result = a / b;
+        print("Division:", label, result);
+    } else {
+        print("Error: division by zero");
+    }
+
+    // Circle area using PI constant
+    print("Enter radius:");
+    input(radius);
+    area = PI * radius * radius;
+    print("Circle area:", area);
+
+    // Nested if-else: grade classifier
+    var int score;
+    print("Enter score (0-100):");
+    input(score);
+
+    if (score >= 90) {
+        print("Grade: A");
+    } else {
+        if (score >= 75) {
+            print("Grade: B");
+        } else {
+            if (score >= 60) {
+                print("Grade: C");
+            } else {
+                print("Grade: F");
+            }
+        }
+    }
+}

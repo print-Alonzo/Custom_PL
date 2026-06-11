@@ -1,0 +1,319 @@
+
+========================================================================
+  SOURCE:  prog1_calculator.src
+========================================================================
+
+     1 | // prog1_calculator.src
+     2 | // Demonstrates: const, var, val, int, float, input, print,
+     3 | //               assignment, if-else, arithmetic expressions
+     4 | 
+     5 | const int MAX_TRIES = 3;
+     6 | const float PI = 3.14159;
+     7 | 
+     8 | void main() {
+     9 |     var int a, b, result;
+    10 |     var float radius, area;
+    11 |     val string label = "Result";
+    12 | 
+    13 |     print("=== Basic Calculator ===");
+    14 |     input(a, b);
+    15 | 
+    16 |     result = a + b;
+    17 |     print("Addition:", label, result);
+    18 | 
+    19 |     result = a - b;
+    20 |     print("Subtraction:", label, result);
+    21 | 
+    22 |     result = a * b;
+    23 |     print("Multiplication:", label, result);
+    24 | 
+    25 |     if (b != 0) {
+    26 |         result = a / b;
+    27 |         print("Division:", label, result);
+    28 |     } else {
+    29 |         print("Error: division by zero");
+    30 |     }
+    31 | 
+    32 |     // Circle area using PI constant
+    33 |     print("Enter radius:");
+    34 |     input(radius);
+    35 |     area = PI * radius * radius;
+    36 |     print("Circle area:", area);
+    37 | 
+    38 |     // Nested if-else: grade classifier
+    39 |     var int score;
+    40 |     print("Enter score (0-100):");
+    41 |     input(score);
+    42 | 
+    43 |     if (score >= 90) {
+    44 |         print("Grade: A");
+    45 |     } else {
+    46 |         if (score >= 75) {
+    47 |             print("Grade: B");
+    48 |         } else {
+    49 |             if (score >= 60) {
+    50 |                 print("Grade: C");
+    51 |             } else {
+    52 |                 print("Grade: F");
+    53 |             }
+    54 |         }
+    55 |     }
+    56 | }
+
+========================================================================
+  LEXICAL ERRORS  (0 found)
+========================================================================
+
+  None.
+
+========================================================================
+  TOKEN STREAM  (218 tokens)
+========================================================================
+
+      #  TYPE              LEXEME                             LINE    COL  ATTR
+  --------------------------------------------------------------------------------
+      1  KEYWORD           'const'                               5      1  
+      2  KEYWORD           'int'                                 5      7  
+      3  IDENTIFIER        'MAX_TRIES'                           5     11  
+      4  ASSIGN_OP         '='                                   5     21  
+      5  INTEGER_LIT       '3'                                   5     23  3
+      6  SEMICOLON         ';'                                   5     24  
+      7  KEYWORD           'const'                               6      1  
+      8  KEYWORD           'float'                               6      7  
+      9  IDENTIFIER        'PI'                                  6     13  
+     10  ASSIGN_OP         '='                                   6     16  
+     11  FLOAT_LIT         '3.14159'                             6     18  3.14159
+     12  SEMICOLON         ';'                                   6     25  
+     13  KEYWORD           'void'                                8      1  
+     14  IDENTIFIER        'main'                                8      6  
+     15  LPAREN            '('                                   8     10  
+     16  RPAREN            ')'                                   8     11  
+     17  LBRACE            '{'                                   8     13  
+     18  KEYWORD           'var'                                 9      5  
+     19  KEYWORD           'int'                                 9      9  
+     20  IDENTIFIER        'a'                                   9     13  
+     21  COMMA             ','                                   9     14  
+     22  IDENTIFIER        'b'                                   9     16  
+     23  COMMA             ','                                   9     17  
+     24  IDENTIFIER        'result'                              9     19  
+     25  SEMICOLON         ';'                                   9     25  
+     26  KEYWORD           'var'                                10      5  
+     27  KEYWORD           'float'                              10      9  
+     28  IDENTIFIER        'radius'                             10     15  
+     29  COMMA             ','                                  10     21  
+     30  IDENTIFIER        'area'                               10     23  
+     31  SEMICOLON         ';'                                  10     27  
+     32  KEYWORD           'val'                                11      5  
+     33  KEYWORD           'string'                             11      9  
+     34  IDENTIFIER        'label'                              11     16  
+     35  ASSIGN_OP         '='                                  11     22  
+     36  STRING_LIT        '"Result"'                           11     24  'Result'
+     37  SEMICOLON         ';'                                  11     32  
+     38  KEYWORD           'print'                              13      5  
+     39  LPAREN            '('                                  13     10  
+     40  STRING_LIT        '"=== Basic Calculator ==="'         13     11  '=== Basic Calculator ==='
+     41  RPAREN            ')'                                  13     37  
+     42  SEMICOLON         ';'                                  13     38  
+     43  KEYWORD           'input'                              14      5  
+     44  LPAREN            '('                                  14     10  
+     45  IDENTIFIER        'a'                                  14     11  
+     46  COMMA             ','                                  14     12  
+     47  IDENTIFIER        'b'                                  14     14  
+     48  RPAREN            ')'                                  14     15  
+     49  SEMICOLON         ';'                                  14     16  
+     50  IDENTIFIER        'result'                             16      5  
+     51  ASSIGN_OP         '='                                  16     12  
+     52  IDENTIFIER        'a'                                  16     14  
+     53  ARITH_OP          '+'                                  16     16  
+     54  IDENTIFIER        'b'                                  16     18  
+     55  SEMICOLON         ';'                                  16     19  
+     56  KEYWORD           'print'                              17      5  
+     57  LPAREN            '('                                  17     10  
+     58  STRING_LIT        '"Addition:"'                        17     11  'Addition:'
+     59  COMMA             ','                                  17     22  
+     60  IDENTIFIER        'label'                              17     24  
+     61  COMMA             ','                                  17     29  
+     62  IDENTIFIER        'result'                             17     31  
+     63  RPAREN            ')'                                  17     37  
+     64  SEMICOLON         ';'                                  17     38  
+     65  IDENTIFIER        'result'                             19      5  
+     66  ASSIGN_OP         '='                                  19     12  
+     67  IDENTIFIER        'a'                                  19     14  
+     68  ARITH_OP          '-'                                  19     16  
+     69  IDENTIFIER        'b'                                  19     18  
+     70  SEMICOLON         ';'                                  19     19  
+     71  KEYWORD           'print'                              20      5  
+     72  LPAREN            '('                                  20     10  
+     73  STRING_LIT        '"Subtraction:"'                     20     11  'Subtraction:'
+     74  COMMA             ','                                  20     25  
+     75  IDENTIFIER        'label'                              20     27  
+     76  COMMA             ','                                  20     32  
+     77  IDENTIFIER        'result'                             20     34  
+     78  RPAREN            ')'                                  20     40  
+     79  SEMICOLON         ';'                                  20     41  
+     80  IDENTIFIER        'result'                             22      5  
+     81  ASSIGN_OP         '='                                  22     12  
+     82  IDENTIFIER        'a'                                  22     14  
+     83  ARITH_OP          '*'                                  22     16  
+     84  IDENTIFIER        'b'                                  22     18  
+     85  SEMICOLON         ';'                                  22     19  
+     86  KEYWORD           'print'                              23      5  
+     87  LPAREN            '('                                  23     10  
+     88  STRING_LIT        '"Multiplication:"'                  23     11  'Multiplication:'
+     89  COMMA             ','                                  23     28  
+     90  IDENTIFIER        'label'                              23     30  
+     91  COMMA             ','                                  23     35  
+     92  IDENTIFIER        'result'                             23     37  
+     93  RPAREN            ')'                                  23     43  
+     94  SEMICOLON         ';'                                  23     44  
+     95  KEYWORD           'if'                                 25      5  
+     96  LPAREN            '('                                  25      8  
+     97  IDENTIFIER        'b'                                  25      9  
+     98  REL_OP            '!='                                 25     11  
+     99  INTEGER_LIT       '0'                                  25     14  0
+    100  RPAREN            ')'                                  25     15  
+    101  LBRACE            '{'                                  25     17  
+    102  IDENTIFIER        'result'                             26      9  
+    103  ASSIGN_OP         '='                                  26     16  
+    104  IDENTIFIER        'a'                                  26     18  
+    105  ARITH_OP          '/'                                  26     20  
+    106  IDENTIFIER        'b'                                  26     22  
+    107  SEMICOLON         ';'                                  26     23  
+    108  KEYWORD           'print'                              27      9  
+    109  LPAREN            '('                                  27     14  
+    110  STRING_LIT        '"Division:"'                        27     15  'Division:'
+    111  COMMA             ','                                  27     26  
+    112  IDENTIFIER        'label'                              27     28  
+    113  COMMA             ','                                  27     33  
+    114  IDENTIFIER        'result'                             27     35  
+    115  RPAREN            ')'                                  27     41  
+    116  SEMICOLON         ';'                                  27     42  
+    117  RBRACE            '}'                                  28      5  
+    118  KEYWORD           'else'                               28      7  
+    119  LBRACE            '{'                                  28     12  
+    120  KEYWORD           'print'                              29      9  
+    121  LPAREN            '('                                  29     14  
+    122  STRING_LIT        '"Error: division by zero"'          29     15  'Error: division by zero'
+    123  RPAREN            ')'                                  29     40  
+    124  SEMICOLON         ';'                                  29     41  
+    125  RBRACE            '}'                                  30      5  
+    126  KEYWORD           'print'                              33      5  
+    127  LPAREN            '('                                  33     10  
+    128  STRING_LIT        '"Enter radius:"'                    33     11  'Enter radius:'
+    129  RPAREN            ')'                                  33     26  
+    130  SEMICOLON         ';'                                  33     27  
+    131  KEYWORD           'input'                              34      5  
+    132  LPAREN            '('                                  34     10  
+    133  IDENTIFIER        'radius'                             34     11  
+    134  RPAREN            ')'                                  34     17  
+    135  SEMICOLON         ';'                                  34     18  
+    136  IDENTIFIER        'area'                               35      5  
+    137  ASSIGN_OP         '='                                  35     10  
+    138  IDENTIFIER        'PI'                                 35     12  
+    139  ARITH_OP          '*'                                  35     15  
+    140  IDENTIFIER        'radius'                             35     17  
+    141  ARITH_OP          '*'                                  35     24  
+    142  IDENTIFIER        'radius'                             35     26  
+    143  SEMICOLON         ';'                                  35     32  
+    144  KEYWORD           'print'                              36      5  
+    145  LPAREN            '('                                  36     10  
+    146  STRING_LIT        '"Circle area:"'                     36     11  'Circle area:'
+    147  COMMA             ','                                  36     25  
+    148  IDENTIFIER        'area'                               36     27  
+    149  RPAREN            ')'                                  36     31  
+    150  SEMICOLON         ';'                                  36     32  
+    151  KEYWORD           'var'                                39      5  
+    152  KEYWORD           'int'                                39      9  
+    153  IDENTIFIER        'score'                              39     13  
+    154  SEMICOLON         ';'                                  39     18  
+    155  KEYWORD           'print'                              40      5  
+    156  LPAREN            '('                                  40     10  
+    157  STRING_LIT        '"Enter score (0-100):"'             40     11  'Enter score (0-100):'
+    158  RPAREN            ')'                                  40     33  
+    159  SEMICOLON         ';'                                  40     34  
+    160  KEYWORD           'input'                              41      5  
+    161  LPAREN            '('                                  41     10  
+    162  IDENTIFIER        'score'                              41     11  
+    163  RPAREN            ')'                                  41     16  
+    164  SEMICOLON         ';'                                  41     17  
+    165  KEYWORD           'if'                                 43      5  
+    166  LPAREN            '('                                  43      8  
+    167  IDENTIFIER        'score'                              43      9  
+    168  REL_OP            '>='                                 43     15  
+    169  INTEGER_LIT       '90'                                 43     18  90
+    170  RPAREN            ')'                                  43     20  
+    171  LBRACE            '{'                                  43     22  
+    172  KEYWORD           'print'                              44      9  
+    173  LPAREN            '('                                  44     14  
+    174  STRING_LIT        '"Grade: A"'                         44     15  'Grade: A'
+    175  RPAREN            ')'                                  44     25  
+    176  SEMICOLON         ';'                                  44     26  
+    177  RBRACE            '}'                                  45      5  
+    178  KEYWORD           'else'                               45      7  
+    179  LBRACE            '{'                                  45     12  
+    180  KEYWORD           'if'                                 46      9  
+    181  LPAREN            '('                                  46     12  
+    182  IDENTIFIER        'score'                              46     13  
+    183  REL_OP            '>='                                 46     19  
+    184  INTEGER_LIT       '75'                                 46     22  75
+    185  RPAREN            ')'                                  46     24  
+    186  LBRACE            '{'                                  46     26  
+    187  KEYWORD           'print'                              47     13  
+    188  LPAREN            '('                                  47     18  
+    189  STRING_LIT        '"Grade: B"'                         47     19  'Grade: B'
+    190  RPAREN            ')'                                  47     29  
+    191  SEMICOLON         ';'                                  47     30  
+    192  RBRACE            '}'                                  48      9  
+    193  KEYWORD           'else'                               48     11  
+    194  LBRACE            '{'                                  48     16  
+    195  KEYWORD           'if'                                 49     13  
+    196  LPAREN            '('                                  49     16  
+    197  IDENTIFIER        'score'                              49     17  
+    198  REL_OP            '>='                                 49     23  
+    199  INTEGER_LIT       '60'                                 49     26  60
+    200  RPAREN            ')'                                  49     28  
+    201  LBRACE            '{'                                  49     30  
+    202  KEYWORD           'print'                              50     17  
+    203  LPAREN            '('                                  50     22  
+    204  STRING_LIT        '"Grade: C"'                         50     23  'Grade: C'
+    205  RPAREN            ')'                                  50     33  
+    206  SEMICOLON         ';'                                  50     34  
+    207  RBRACE            '}'                                  51     13  
+    208  KEYWORD           'else'                               51     15  
+    209  LBRACE            '{'                                  51     20  
+    210  KEYWORD           'print'                              52     17  
+    211  LPAREN            '('                                  52     22  
+    212  STRING_LIT        '"Grade: F"'                         52     23  'Grade: F'
+    213  RPAREN            ')'                                  52     33  
+    214  SEMICOLON         ';'                                  52     34  
+    215  RBRACE            '}'                                  53     13  
+    216  RBRACE            '}'                                  54      9  
+    217  RBRACE            '}'                                  55      5  
+    218  RBRACE            '}'                                  56      1  
+    219  EOF               ''                                   57      1  
+
+========================================================================
+  STATISTICS
+========================================================================
+
+  Total tokens  : 218
+  Total errors  : 0
+  Scan time     : 1.088 ms
+  Source lines  : 57
+  Source chars  : 1249
+
+  Token type breakdown:
+    IDENTIFIER            43
+    KEYWORD               37
+    SEMICOLON             27
+    LPAREN                21
+    RPAREN                21
+    STRING_LIT            14
+    COMMA                 13
+    LBRACE                9
+    RBRACE                9
+    ASSIGN_OP             8
+    ARITH_OP              6
+    INTEGER_LIT           5
+    REL_OP                4
+    FLOAT_LIT             1

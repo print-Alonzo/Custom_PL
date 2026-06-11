@@ -1,0 +1,148 @@
+// prog5_advanced.src
+// Demonstrates: pointers & dereferencing (bonus), multi-assignment,
+//               let destructuring, complex boolean & arithmetic expressions,
+//               nested loops/conditionals, multi-line comments,
+//               all remaining constructs not shown in prior programs
+
+/*
+ * Linked-list node using pointer (bonus feature).
+ * Each node stores an integer value and a pointer to the next node.
+ */
+struct Node {
+    int value;
+    struct Node *next;
+};
+
+// ---- Pointer arithmetic: increment via pointer ----
+void increment(int *n) {
+    *n = *n + 1;
+}
+
+// ---- Double pointer dereference ----
+void double_deref(int **pp) {
+    **pp = **pp * 2;
+}
+
+// ---- Multi-return: quotient and remainder ----
+(int, int) divmod(int a, int b) {
+    return a / b, a % b;
+}
+
+// ---- Demonstrates nested match + guard + complex expressions ----
+string classify_number(int n) {
+    guard (n != 0) else {
+        return "zero";
+    }
+
+    let sign = match (n > 0) {
+        true => "positive",
+        _ => "negative"
+    };
+
+    var int abs_n;
+    if (n < 0) {
+        abs_n = -n;
+    } else {
+        abs_n = n;
+    }
+
+    let parity = match (abs_n % 2) {
+        0 => "even",
+        _ => "odd"
+    };
+
+    return `{sign} {parity}`;
+}
+
+// ---- Demonstrates complex nested loops with continue/break ----
+void print_multiplication_table(int size) {
+    var int r, c, product;
+    for (r = 1; r <= size; r = r + 1) {
+        for (c = 1; c <= size; c = c + 1) {
+            product = r * c;
+            if (product > 50) {
+                break;             // inner break
+            }
+            print(r, "x", c, "=", product);
+        }
+        if (r == 4) {
+            continue;              // outer continue
+        }
+    }
+}
+
+void main() {
+    // ---- Pointer usage ----
+    var int counter;
+    counter = 0;
+    increment(&counter);
+    increment(&counter);
+    print("Counter after 2 increments:", counter);
+
+    var int *ptr;
+    ptr = &counter;
+    *ptr = *ptr + 10;
+    print("Counter via pointer add:", counter);
+
+    // Double-pointer
+    var int **dptr;
+    dptr = &ptr;
+    double_deref(dptr);
+    print("Counter after double deref:", counter);
+
+    // ---- Multi-assignment from function ----
+    var int q, r;
+    let q, r = divmod(17, 5);
+    print("17 div 5: quotient =", q, " remainder =", r);
+
+    // ---- let with expression list (no function call) ----
+    var int x, y, z;
+    let x, y, z = 10, 20, 30;
+    print("x =", x, "y =", y, "z =", z);
+
+    // ---- Complex arithmetic expression ----
+    var float result;
+    result = (x + y) * z / (x - 5) + 3.0;
+    print("Complex expr result:", result);
+
+    // ---- Complex boolean expression ----
+    var bool flag;
+    flag = (x > 5 && y < 100) || (z == 30 && !(x == y));
+    if (flag) {
+        print("Complex bool: true");
+    }
+
+    // ---- classify_number with various inputs ----
+    print(classify_number(0));
+    print(classify_number(7));
+    print(classify_number(-4));
+    print(classify_number(12));
+
+    // ---- Multiplication table (nested loops, break, continue) ----
+    print("--- Multiplication Table (products <= 50) ---");
+    print_multiplication_table(5);
+
+    // ---- While with complex condition ----
+    var int a, b;
+    a = 1;
+    b = 100;
+    while (a < b && (a % 7 != 0 || b % 3 != 0)) {
+        a = a + 1;
+        b = b - 1;
+    }
+    print("While exit: a =", a, " b =", b);
+
+    // ---- Repeat-until with guard inside ----
+    var int attempts;
+    attempts = 0;
+    repeat {
+        attempts = attempts + 1;
+        guard (attempts < 10) else {
+            print("Too many attempts, aborting.");
+            break;
+        }
+        print("Attempt", attempts);
+    } until (attempts >= 3);
+
+    print("Done.");
+}

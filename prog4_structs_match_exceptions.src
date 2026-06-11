@@ -1,0 +1,105 @@
+// prog4_structs_match_exceptions.src
+// Demonstrates: struct, typedef, match statement, match expression,
+//               guard, try/catch/finally, throw, string & char literals,
+//               escape sequences, interpolated strings, bool type
+
+// ---- Struct: Student record ----
+struct Student {
+    string name;
+    int id;
+    float gpa;
+    bool enrolled;
+};
+
+// ---- Typedef: alias for int ----
+typedef int StudentID;
+
+// ---- Typedef wrapping a struct ----
+typedef struct Student StudentRecord;
+
+// ---- Returns a letter grade using a match expression ----
+string grade_letter(float gpa) {
+    let letter = match (gpa) {
+        3.5..4.0 => "A",
+        3.0..3.49 => "B",
+        2.5..2.99 => "C",
+        2.0..2.49 => "D",
+        _ => "F"
+    };
+    return letter;
+}
+
+// ---- Validates a student ID; throws on bad input ----
+void validate_id(StudentID id) {
+    guard (id > 0 && id <= 99999) else {
+        throw "Invalid student ID";
+    }
+    print("ID", id, "is valid.");
+}
+
+// ---- Processes a status code using match statement ----
+void handle_status(int code) {
+    match (code) {
+        0 => print("OK");
+        1 => print("Warning: low memory");
+        2 => print("Error: disk full");
+        3..9 => print("Unknown error code");
+        _ => print("Unrecognized code");
+    }
+}
+
+void main() {
+    // Struct instantiation
+    var struct Student s1;
+    s1.name = "Alonzo";
+    s1.id = 20220001;
+    s1.gpa = 3.75;
+    s1.enrolled = true;
+
+    // Interpolated string with struct fields
+    let info = `Student: {s1.name}  ID: {s1.id}  GPA: {s1.gpa}`;
+    print(info);
+    print("Enrolled:", s1.enrolled);
+
+    // Match expression for grade
+    let grade = grade_letter(s1.gpa);
+    print("Letter grade:", grade);
+
+    // Match statement on integer
+    var int status;
+    status = 2;
+    handle_status(status);
+
+    // Try / catch / finally block
+    try {
+        validate_id(20220001);   // valid
+        validate_id(-5);         // throws
+    } catch (e) {
+        print("Caught exception:", e);
+    } finally {
+        print("Validation routine complete.");
+    }
+
+    // Char literals and escape sequences
+    var char newline, tab, quote;
+    newline = '\n';
+    tab = '\t';
+    quote = '\"';
+    print("Special chars stored:", newline, tab, quote);
+
+    // String with escape sequences
+    var string msg;
+    msg = "Line1\nLine2\tTabbed\\Backslash";
+    print(msg);
+
+    // Boolean logic
+    var bool p, q;
+    p = true;
+    q = false;
+    if (p && !q) {
+        print("p is true and q is false");
+    }
+    if (p || q) {
+        print("At least one is true");
+    }
+}

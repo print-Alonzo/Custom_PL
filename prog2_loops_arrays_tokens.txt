@@ -1,0 +1,459 @@
+
+========================================================================
+  SOURCE:  prog2_loops_arrays.src
+========================================================================
+
+     1 | // prog2_loops_arrays.src
+     2 | // Demonstrates: for loop (C-style, range, collection), while loop,
+     3 | //               repeat-until loop, arrays, array initializers, break, continue
+     4 | 
+     5 | const int SIZE = 5;
+     6 | 
+     7 | void main() {
+     8 |     // Array declaration and initialization
+     9 |     val int scores[5] = {95, 82, 77, 90, 68};
+    10 |     var int i, sum, temp;
+    11 |     var float average;
+    12 | 
+    13 |     // C-style for loop: compute sum
+    14 |     sum = 0;
+    15 |     for (i = 0; i < SIZE; i = i + 1) {
+    16 |         sum = sum + scores[i];
+    17 |     }
+    18 |     average = sum / SIZE;
+    19 |     print("Sum:", sum, "  Average:", average);
+    20 | 
+    21 |     // Range-based for loop
+    22 |     print("Scores via range loop:");
+    23 |     for (i in 0..4) {
+    24 |         print("  scores[", i, "] =", scores[i]);
+    25 |     }
+    26 | 
+    27 |     // Collection-style for loop over array identifier
+    28 |     print("Scores via collection loop:");
+    29 |     for (temp in scores) {
+    30 |         print(" ", temp);
+    31 |     }
+    32 | 
+    33 |     // While loop: bubble sort pass
+    34 |     var int swapped;
+    35 |     swapped = 1;
+    36 |     while (swapped == 1) {
+    37 |         swapped = 0;
+    38 |         for (i = 0; i < SIZE - 1; i = i + 1) {
+    39 |             if (scores[i] > scores[i + 1]) {
+    40 |                 temp = scores[i];
+    41 |                 scores[i] = scores[i + 1];
+    42 |                 scores[i + 1] = temp;
+    43 |                 swapped = 1;
+    44 |             }
+    45 |         }
+    46 |     }
+    47 | 
+    48 |     print("Sorted scores:");
+    49 |     for (i = 0; i < SIZE; i = i + 1) {
+    50 |         print(scores[i]);
+    51 |     }
+    52 | 
+    53 |     // Repeat-until loop: input validation
+    54 |     var int n;
+    55 |     repeat {
+    56 |         print("Enter a positive number:");
+    57 |         input(n);
+    58 |     } until (n > 0);
+    59 |     print("You entered:", n);
+    60 | 
+    61 |     // Break and continue demonstration
+    62 |     print("Even numbers from 0 to 20 (skip multiples of 6):");
+    63 |     for (i = 0; i <= 20; i = i + 2) {
+    64 |         if (i % 6 == 0) {
+    65 |             continue;
+    66 |         }
+    67 |         if (i > 18) {
+    68 |             break;
+    69 |         }
+    70 |         print(i);
+    71 |     }
+    72 | }
+
+========================================================================
+  LEXICAL ERRORS  (0 found)
+========================================================================
+
+  None.
+
+========================================================================
+  TOKEN STREAM  (340 tokens)
+========================================================================
+
+      #  TYPE              LEXEME                             LINE    COL  ATTR
+  --------------------------------------------------------------------------------
+      1  KEYWORD           'const'                               5      1  
+      2  KEYWORD           'int'                                 5      7  
+      3  IDENTIFIER        'SIZE'                                5     11  
+      4  ASSIGN_OP         '='                                   5     16  
+      5  INTEGER_LIT       '5'                                   5     18  5
+      6  SEMICOLON         ';'                                   5     19  
+      7  KEYWORD           'void'                                7      1  
+      8  IDENTIFIER        'main'                                7      6  
+      9  LPAREN            '('                                   7     10  
+     10  RPAREN            ')'                                   7     11  
+     11  LBRACE            '{'                                   7     13  
+     12  KEYWORD           'val'                                 9      5  
+     13  KEYWORD           'int'                                 9      9  
+     14  IDENTIFIER        'scores'                              9     13  
+     15  LBRACKET          '['                                   9     19  
+     16  INTEGER_LIT       '5'                                   9     20  5
+     17  RBRACKET          ']'                                   9     21  
+     18  ASSIGN_OP         '='                                   9     23  
+     19  LBRACE            '{'                                   9     25  
+     20  INTEGER_LIT       '95'                                  9     26  95
+     21  COMMA             ','                                   9     28  
+     22  INTEGER_LIT       '82'                                  9     30  82
+     23  COMMA             ','                                   9     32  
+     24  INTEGER_LIT       '77'                                  9     34  77
+     25  COMMA             ','                                   9     36  
+     26  INTEGER_LIT       '90'                                  9     38  90
+     27  COMMA             ','                                   9     40  
+     28  INTEGER_LIT       '68'                                  9     42  68
+     29  RBRACE            '}'                                   9     44  
+     30  SEMICOLON         ';'                                   9     45  
+     31  KEYWORD           'var'                                10      5  
+     32  KEYWORD           'int'                                10      9  
+     33  IDENTIFIER        'i'                                  10     13  
+     34  COMMA             ','                                  10     14  
+     35  IDENTIFIER        'sum'                                10     16  
+     36  COMMA             ','                                  10     19  
+     37  IDENTIFIER        'temp'                               10     21  
+     38  SEMICOLON         ';'                                  10     25  
+     39  KEYWORD           'var'                                11      5  
+     40  KEYWORD           'float'                              11      9  
+     41  IDENTIFIER        'average'                            11     15  
+     42  SEMICOLON         ';'                                  11     22  
+     43  IDENTIFIER        'sum'                                14      5  
+     44  ASSIGN_OP         '='                                  14      9  
+     45  INTEGER_LIT       '0'                                  14     11  0
+     46  SEMICOLON         ';'                                  14     12  
+     47  KEYWORD           'for'                                15      5  
+     48  LPAREN            '('                                  15      9  
+     49  IDENTIFIER        'i'                                  15     10  
+     50  ASSIGN_OP         '='                                  15     12  
+     51  INTEGER_LIT       '0'                                  15     14  0
+     52  SEMICOLON         ';'                                  15     15  
+     53  IDENTIFIER        'i'                                  15     17  
+     54  REL_OP            '<'                                  15     19  
+     55  IDENTIFIER        'SIZE'                               15     21  
+     56  SEMICOLON         ';'                                  15     25  
+     57  IDENTIFIER        'i'                                  15     27  
+     58  ASSIGN_OP         '='                                  15     29  
+     59  IDENTIFIER        'i'                                  15     31  
+     60  ARITH_OP          '+'                                  15     33  
+     61  INTEGER_LIT       '1'                                  15     35  1
+     62  RPAREN            ')'                                  15     36  
+     63  LBRACE            '{'                                  15     38  
+     64  IDENTIFIER        'sum'                                16      9  
+     65  ASSIGN_OP         '='                                  16     13  
+     66  IDENTIFIER        'sum'                                16     15  
+     67  ARITH_OP          '+'                                  16     19  
+     68  IDENTIFIER        'scores'                             16     21  
+     69  LBRACKET          '['                                  16     27  
+     70  IDENTIFIER        'i'                                  16     28  
+     71  RBRACKET          ']'                                  16     29  
+     72  SEMICOLON         ';'                                  16     30  
+     73  RBRACE            '}'                                  17      5  
+     74  IDENTIFIER        'average'                            18      5  
+     75  ASSIGN_OP         '='                                  18     13  
+     76  IDENTIFIER        'sum'                                18     15  
+     77  ARITH_OP          '/'                                  18     19  
+     78  IDENTIFIER        'SIZE'                               18     21  
+     79  SEMICOLON         ';'                                  18     25  
+     80  KEYWORD           'print'                              19      5  
+     81  LPAREN            '('                                  19     10  
+     82  STRING_LIT        '"Sum:"'                             19     11  'Sum:'
+     83  COMMA             ','                                  19     17  
+     84  IDENTIFIER        'sum'                                19     19  
+     85  COMMA             ','                                  19     22  
+     86  STRING_LIT        '"  Average:"'                       19     24  '  Average:'
+     87  COMMA             ','                                  19     36  
+     88  IDENTIFIER        'average'                            19     38  
+     89  RPAREN            ')'                                  19     45  
+     90  SEMICOLON         ';'                                  19     46  
+     91  KEYWORD           'print'                              22      5  
+     92  LPAREN            '('                                  22     10  
+     93  STRING_LIT        '"Scores via range loop:"'           22     11  'Scores via range loop:'
+     94  RPAREN            ')'                                  22     35  
+     95  SEMICOLON         ';'                                  22     36  
+     96  KEYWORD           'for'                                23      5  
+     97  LPAREN            '('                                  23      9  
+     98  IDENTIFIER        'i'                                  23     10  
+     99  KEYWORD           'in'                                 23     12  
+    100  INTEGER_LIT       '0'                                  23     15  0
+    101  RANGE_OP          '..'                                 23     16  
+    102  INTEGER_LIT       '4'                                  23     18  4
+    103  RPAREN            ')'                                  23     19  
+    104  LBRACE            '{'                                  23     21  
+    105  KEYWORD           'print'                              24      9  
+    106  LPAREN            '('                                  24     14  
+    107  STRING_LIT        '"  scores["'                        24     15  '  scores['
+    108  COMMA             ','                                  24     26  
+    109  IDENTIFIER        'i'                                  24     28  
+    110  COMMA             ','                                  24     29  
+    111  STRING_LIT        '"] ="'                              24     31  '] ='
+    112  COMMA             ','                                  24     36  
+    113  IDENTIFIER        'scores'                             24     38  
+    114  LBRACKET          '['                                  24     44  
+    115  IDENTIFIER        'i'                                  24     45  
+    116  RBRACKET          ']'                                  24     46  
+    117  RPAREN            ')'                                  24     47  
+    118  SEMICOLON         ';'                                  24     48  
+    119  RBRACE            '}'                                  25      5  
+    120  KEYWORD           'print'                              28      5  
+    121  LPAREN            '('                                  28     10  
+    122  STRING_LIT        '"Scores via collection loop:"'      28     11  'Scores via collection loop:'
+    123  RPAREN            ')'                                  28     40  
+    124  SEMICOLON         ';'                                  28     41  
+    125  KEYWORD           'for'                                29      5  
+    126  LPAREN            '('                                  29      9  
+    127  IDENTIFIER        'temp'                               29     10  
+    128  KEYWORD           'in'                                 29     15  
+    129  IDENTIFIER        'scores'                             29     18  
+    130  RPAREN            ')'                                  29     24  
+    131  LBRACE            '{'                                  29     26  
+    132  KEYWORD           'print'                              30      9  
+    133  LPAREN            '('                                  30     14  
+    134  STRING_LIT        '" "'                                30     15  ' '
+    135  COMMA             ','                                  30     18  
+    136  IDENTIFIER        'temp'                               30     20  
+    137  RPAREN            ')'                                  30     24  
+    138  SEMICOLON         ';'                                  30     25  
+    139  RBRACE            '}'                                  31      5  
+    140  KEYWORD           'var'                                34      5  
+    141  KEYWORD           'int'                                34      9  
+    142  IDENTIFIER        'swapped'                            34     13  
+    143  SEMICOLON         ';'                                  34     20  
+    144  IDENTIFIER        'swapped'                            35      5  
+    145  ASSIGN_OP         '='                                  35     13  
+    146  INTEGER_LIT       '1'                                  35     15  1
+    147  SEMICOLON         ';'                                  35     16  
+    148  KEYWORD           'while'                              36      5  
+    149  LPAREN            '('                                  36     11  
+    150  IDENTIFIER        'swapped'                            36     12  
+    151  REL_OP            '=='                                 36     20  
+    152  INTEGER_LIT       '1'                                  36     23  1
+    153  RPAREN            ')'                                  36     24  
+    154  LBRACE            '{'                                  36     26  
+    155  IDENTIFIER        'swapped'                            37      9  
+    156  ASSIGN_OP         '='                                  37     17  
+    157  INTEGER_LIT       '0'                                  37     19  0
+    158  SEMICOLON         ';'                                  37     20  
+    159  KEYWORD           'for'                                38      9  
+    160  LPAREN            '('                                  38     13  
+    161  IDENTIFIER        'i'                                  38     14  
+    162  ASSIGN_OP         '='                                  38     16  
+    163  INTEGER_LIT       '0'                                  38     18  0
+    164  SEMICOLON         ';'                                  38     19  
+    165  IDENTIFIER        'i'                                  38     21  
+    166  REL_OP            '<'                                  38     23  
+    167  IDENTIFIER        'SIZE'                               38     25  
+    168  ARITH_OP          '-'                                  38     30  
+    169  INTEGER_LIT       '1'                                  38     32  1
+    170  SEMICOLON         ';'                                  38     33  
+    171  IDENTIFIER        'i'                                  38     35  
+    172  ASSIGN_OP         '='                                  38     37  
+    173  IDENTIFIER        'i'                                  38     39  
+    174  ARITH_OP          '+'                                  38     41  
+    175  INTEGER_LIT       '1'                                  38     43  1
+    176  RPAREN            ')'                                  38     44  
+    177  LBRACE            '{'                                  38     46  
+    178  KEYWORD           'if'                                 39     13  
+    179  LPAREN            '('                                  39     16  
+    180  IDENTIFIER        'scores'                             39     17  
+    181  LBRACKET          '['                                  39     23  
+    182  IDENTIFIER        'i'                                  39     24  
+    183  RBRACKET          ']'                                  39     25  
+    184  REL_OP            '>'                                  39     27  
+    185  IDENTIFIER        'scores'                             39     29  
+    186  LBRACKET          '['                                  39     35  
+    187  IDENTIFIER        'i'                                  39     36  
+    188  ARITH_OP          '+'                                  39     38  
+    189  INTEGER_LIT       '1'                                  39     40  1
+    190  RBRACKET          ']'                                  39     41  
+    191  RPAREN            ')'                                  39     42  
+    192  LBRACE            '{'                                  39     44  
+    193  IDENTIFIER        'temp'                               40     17  
+    194  ASSIGN_OP         '='                                  40     22  
+    195  IDENTIFIER        'scores'                             40     24  
+    196  LBRACKET          '['                                  40     30  
+    197  IDENTIFIER        'i'                                  40     31  
+    198  RBRACKET          ']'                                  40     32  
+    199  SEMICOLON         ';'                                  40     33  
+    200  IDENTIFIER        'scores'                             41     17  
+    201  LBRACKET          '['                                  41     23  
+    202  IDENTIFIER        'i'                                  41     24  
+    203  RBRACKET          ']'                                  41     25  
+    204  ASSIGN_OP         '='                                  41     27  
+    205  IDENTIFIER        'scores'                             41     29  
+    206  LBRACKET          '['                                  41     35  
+    207  IDENTIFIER        'i'                                  41     36  
+    208  ARITH_OP          '+'                                  41     38  
+    209  INTEGER_LIT       '1'                                  41     40  1
+    210  RBRACKET          ']'                                  41     41  
+    211  SEMICOLON         ';'                                  41     42  
+    212  IDENTIFIER        'scores'                             42     17  
+    213  LBRACKET          '['                                  42     23  
+    214  IDENTIFIER        'i'                                  42     24  
+    215  ARITH_OP          '+'                                  42     26  
+    216  INTEGER_LIT       '1'                                  42     28  1
+    217  RBRACKET          ']'                                  42     29  
+    218  ASSIGN_OP         '='                                  42     31  
+    219  IDENTIFIER        'temp'                               42     33  
+    220  SEMICOLON         ';'                                  42     37  
+    221  IDENTIFIER        'swapped'                            43     17  
+    222  ASSIGN_OP         '='                                  43     25  
+    223  INTEGER_LIT       '1'                                  43     27  1
+    224  SEMICOLON         ';'                                  43     28  
+    225  RBRACE            '}'                                  44     13  
+    226  RBRACE            '}'                                  45      9  
+    227  RBRACE            '}'                                  46      5  
+    228  KEYWORD           'print'                              48      5  
+    229  LPAREN            '('                                  48     10  
+    230  STRING_LIT        '"Sorted scores:"'                   48     11  'Sorted scores:'
+    231  RPAREN            ')'                                  48     27  
+    232  SEMICOLON         ';'                                  48     28  
+    233  KEYWORD           'for'                                49      5  
+    234  LPAREN            '('                                  49      9  
+    235  IDENTIFIER        'i'                                  49     10  
+    236  ASSIGN_OP         '='                                  49     12  
+    237  INTEGER_LIT       '0'                                  49     14  0
+    238  SEMICOLON         ';'                                  49     15  
+    239  IDENTIFIER        'i'                                  49     17  
+    240  REL_OP            '<'                                  49     19  
+    241  IDENTIFIER        'SIZE'                               49     21  
+    242  SEMICOLON         ';'                                  49     25  
+    243  IDENTIFIER        'i'                                  49     27  
+    244  ASSIGN_OP         '='                                  49     29  
+    245  IDENTIFIER        'i'                                  49     31  
+    246  ARITH_OP          '+'                                  49     33  
+    247  INTEGER_LIT       '1'                                  49     35  1
+    248  RPAREN            ')'                                  49     36  
+    249  LBRACE            '{'                                  49     38  
+    250  KEYWORD           'print'                              50      9  
+    251  LPAREN            '('                                  50     14  
+    252  IDENTIFIER        'scores'                             50     15  
+    253  LBRACKET          '['                                  50     21  
+    254  IDENTIFIER        'i'                                  50     22  
+    255  RBRACKET          ']'                                  50     23  
+    256  RPAREN            ')'                                  50     24  
+    257  SEMICOLON         ';'                                  50     25  
+    258  RBRACE            '}'                                  51      5  
+    259  KEYWORD           'var'                                54      5  
+    260  KEYWORD           'int'                                54      9  
+    261  IDENTIFIER        'n'                                  54     13  
+    262  SEMICOLON         ';'                                  54     14  
+    263  KEYWORD           'repeat'                             55      5  
+    264  LBRACE            '{'                                  55     12  
+    265  KEYWORD           'print'                              56      9  
+    266  LPAREN            '('                                  56     14  
+    267  STRING_LIT        '"Enter a positive number:"'         56     15  'Enter a positive number:'
+    268  RPAREN            ')'                                  56     41  
+    269  SEMICOLON         ';'                                  56     42  
+    270  KEYWORD           'input'                              57      9  
+    271  LPAREN            '('                                  57     14  
+    272  IDENTIFIER        'n'                                  57     15  
+    273  RPAREN            ')'                                  57     16  
+    274  SEMICOLON         ';'                                  57     17  
+    275  RBRACE            '}'                                  58      5  
+    276  KEYWORD           'until'                              58      7  
+    277  LPAREN            '('                                  58     13  
+    278  IDENTIFIER        'n'                                  58     14  
+    279  REL_OP            '>'                                  58     16  
+    280  INTEGER_LIT       '0'                                  58     18  0
+    281  RPAREN            ')'                                  58     19  
+    282  SEMICOLON         ';'                                  58     20  
+    283  KEYWORD           'print'                              59      5  
+    284  LPAREN            '('                                  59     10  
+    285  STRING_LIT        '"You entered:"'                     59     11  'You entered:'
+    286  COMMA             ','                                  59     25  
+    287  IDENTIFIER        'n'                                  59     27  
+    288  RPAREN            ')'                                  59     28  
+    289  SEMICOLON         ';'                                  59     29  
+    290  KEYWORD           'print'                              62      5  
+    291  LPAREN            '('                                  62     10  
+    292  STRING_LIT        '"Even numbers from 0 to 20 (skip multiples of 6):"'     62     11  'Even numbers from 0 to 20 (skip multiples of 6):'
+    293  RPAREN            ')'                                  62     61  
+    294  SEMICOLON         ';'                                  62     62  
+    295  KEYWORD           'for'                                63      5  
+    296  LPAREN            '('                                  63      9  
+    297  IDENTIFIER        'i'                                  63     10  
+    298  ASSIGN_OP         '='                                  63     12  
+    299  INTEGER_LIT       '0'                                  63     14  0
+    300  SEMICOLON         ';'                                  63     15  
+    301  IDENTIFIER        'i'                                  63     17  
+    302  REL_OP            '<='                                 63     19  
+    303  INTEGER_LIT       '20'                                 63     22  20
+    304  SEMICOLON         ';'                                  63     24  
+    305  IDENTIFIER        'i'                                  63     26  
+    306  ASSIGN_OP         '='                                  63     28  
+    307  IDENTIFIER        'i'                                  63     30  
+    308  ARITH_OP          '+'                                  63     32  
+    309  INTEGER_LIT       '2'                                  63     34  2
+    310  RPAREN            ')'                                  63     35  
+    311  LBRACE            '{'                                  63     37  
+    312  KEYWORD           'if'                                 64      9  
+    313  LPAREN            '('                                  64     12  
+    314  IDENTIFIER        'i'                                  64     13  
+    315  ARITH_OP          '%'                                  64     15  
+    316  INTEGER_LIT       '6'                                  64     17  6
+    317  REL_OP            '=='                                 64     19  
+    318  INTEGER_LIT       '0'                                  64     22  0
+    319  RPAREN            ')'                                  64     23  
+    320  LBRACE            '{'                                  64     25  
+    321  KEYWORD           'continue'                           65     13  
+    322  SEMICOLON         ';'                                  65     21  
+    323  RBRACE            '}'                                  66      9  
+    324  KEYWORD           'if'                                 67      9  
+    325  LPAREN            '('                                  67     12  
+    326  IDENTIFIER        'i'                                  67     13  
+    327  REL_OP            '>'                                  67     15  
+    328  INTEGER_LIT       '18'                                 67     17  18
+    329  RPAREN            ')'                                  67     19  
+    330  LBRACE            '{'                                  67     21  
+    331  KEYWORD           'break'                              68     13  
+    332  SEMICOLON         ';'                                  68     18  
+    333  RBRACE            '}'                                  69      9  
+    334  KEYWORD           'print'                              70      9  
+    335  LPAREN            '('                                  70     14  
+    336  IDENTIFIER        'i'                                  70     15  
+    337  RPAREN            ')'                                  70     16  
+    338  SEMICOLON         ';'                                  70     17  
+    339  RBRACE            '}'                                  71      5  
+    340  RBRACE            '}'                                  72      1  
+    341  EOF               ''                                   73      1  
+
+========================================================================
+  STATISTICS
+========================================================================
+
+  Total tokens  : 340
+  Total errors  : 0
+  Scan time     : 1.682 ms
+  Source lines  : 73
+  Source chars  : 1800
+
+  Token type breakdown:
+    IDENTIFIER            71
+    KEYWORD               41
+    SEMICOLON             38
+    INTEGER_LIT           31
+    LPAREN                24
+    RPAREN                24
+    ASSIGN_OP             19
+    COMMA                 14
+    LBRACE                13
+    RBRACE                13
+    ARITH_OP              11
+    STRING_LIT            11
+    LBRACKET              10
+    RBRACKET              10
+    REL_OP                9
+    RANGE_OP              1

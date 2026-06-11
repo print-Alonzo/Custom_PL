@@ -1,16 +1,3 @@
-#!/usr/bin/env python3
-"""
-scanner.py — Lexical Analyzer for CSC617M Custom Language
-Machine Project Milestone: Scanner Demo
-
-Usage:
-    python scanner.py <source_file>            # display dump (stdout)
-    python scanner.py <source_file> -o <file>  # file dump
-    python scanner.py <source_file> --no-src   # suppress source echo
-    python scanner.py --help
-"""
-
-import re
 import sys
 import os
 import time
@@ -118,7 +105,7 @@ class LexError:
 #  Scanner
 # ─────────────────────────────────────────────────────────────────
 class Scanner:
-    """Acanner following the lexical grammar from last meeting"""
+    """A Scanner following the lexical grammar from last meeting"""
 
     # Printable special chars allowed inside string/char literals (from grammar)
     _SPECIAL_CHARS = set(r'!@#$%^&()-_+=[]{}|;:,.<>?/* ')

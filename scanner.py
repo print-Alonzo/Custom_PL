@@ -118,7 +118,7 @@ class LexError:
 #  Scanner
 # ─────────────────────────────────────────────────────────────────
 class Scanner:
-    """Hand-written scanner following the lexical grammar in Syntax_Definition.pdf."""
+    """Acanner following the lexical grammar from last meeting"""
 
     # Printable special chars allowed inside string/char literals (from grammar)
     _SPECIAL_CHARS = set(r'!@#$%^&()-_+=[]{}|;:,.<>?/* ')

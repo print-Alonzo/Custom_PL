@@ -6,9 +6,7 @@ from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
 
 
-# ─────────────────────────────────────────────────────────────────
 #  Token types
-# ─────────────────────────────────────────────────────────────────
 class TT:
     # Literals
     INTEGER_LIT   = "INTEGER_LIT"
@@ -32,7 +30,7 @@ class TT:
     MATCH_ARROW   = "MATCH_ARROW"    # =>
     STRUCT_PTR    = "STRUCT_PTR"     # ->
     ADDR_OP       = "ADDR_OP"        # &
-    DEREF_OP      = "DEREF_OP"       # * (when used as prefix dereference — scanned same as ARITH_OP *, parser disambiguates)
+    DEREF_OP      = "DEREF_OP"       # *
 
     # Punctuation / Delimiters
     SEMICOLON     = "SEMICOLON"      # ;
@@ -45,8 +43,8 @@ class TT:
     LBRACKET      = "LBRACKET"       # [
     RBRACKET      = "RBRACKET"       # ]
     DOT           = "DOT"            # .
-    BACKTICK      = "BACKTICK"       # ` (delimiter — handled inside INTERP_STRING scanning)
-    UNDERSCORE    = "UNDERSCORE"     # _  (match wildcard keyword)
+    BACKTICK      = "BACKTICK"       # `
+    UNDERSCORE    = "UNDERSCORE"     # _ 
 
     # Special
     EOF           = "EOF"
@@ -67,9 +65,7 @@ KEYWORDS = {
 BOOL_KEYWORDS = {"true", "false"}
 
 
-# ─────────────────────────────────────────────────────────────────
 #  Token dataclass
-# ─────────────────────────────────────────────────────────────────
 @dataclass
 class Token:
     ttype:  str
@@ -86,9 +82,7 @@ class Token:
         )
 
 
-# ─────────────────────────────────────────────────────────────────
 #  Lexical error
-# ─────────────────────────────────────────────────────────────────
 @dataclass
 class LexError:
     message: str
@@ -101,13 +95,8 @@ class LexError:
         return f"[LEXICAL ERROR] Line {self.line}, Col {self.col}: {self.message}{ctx}"
 
 
-# ─────────────────────────────────────────────────────────────────
 #  Scanner
-# ─────────────────────────────────────────────────────────────────
 class Scanner:
-    """A Scanner following the lexical grammar from last meeting"""
-
-    # Printable special chars allowed inside string/char literals (from grammar)
     _SPECIAL_CHARS = set(r'!@#$%^&()-_+=[]{}|;:,.<>?/* ')
 
     def __init__(self, source: str):
@@ -117,8 +106,6 @@ class Scanner:
         self.col     = 1
         self.tokens: List[Token]   = []
         self.errors: List[LexError] = []
-
-    # ── low-level helpers ──────────────────────────────────────────
 
     def _peek(self, offset: int = 0) -> str:
         idx = self.pos + offset
@@ -141,7 +128,7 @@ class Scanner:
         return False
 
     def _peek2(self) -> str:
-        """Next two characters as string."""
+        # Next two characters as string.
         return self.source[self.pos:self.pos+2]
 
     def _add_token(self, ttype: str, lexeme: str, start_line: int, start_col: int,
@@ -150,8 +137,6 @@ class Scanner:
 
     def _add_error(self, msg: str, line: int, col: int, context: str = ""):
         self.errors.append(LexError(msg, line, col, context))
-
-    # ── skip whitespace & comments ─────────────────────────────────
 
     def _skip_whitespace_and_comments(self):
         while self.pos < len(self.source):
@@ -162,13 +147,13 @@ class Scanner:
                 self._advance()
                 continue
 
-            # Single-line comment  //
+            # Single-line comment
             if ch == "/" and self._peek(1) == "/":
                 while self.pos < len(self.source) and self._peek() != "\n":
                     self._advance()
                 continue
 
-            # Multi-line comment  /* ... */
+            # Multi-line comment
             if ch == "/" and self._peek(1) == "*":
                 sl, sc = self.line, self.col
                 self._advance(); self._advance()   # consume /*
@@ -185,24 +170,18 @@ class Scanner:
 
             break
 
-    # ── numeric literals ───────────────────────────────────────────
-
     def _scan_number(self) -> Token:
         sl, sc = self.line, self.col
         lexeme = []
-
-        # Optional sign (+/-) is treated as a unary operator by the parser
-        # (the lexical grammar allows <sign> but we emit it as ARITH_OP separately)
-        # So here we just scan digit sequences.
 
         # Integer part
         while self._peek().isdigit():
             lexeme.append(self._advance())
 
-        # Check for float: digit* '.' digit*  OR  '.' digit+
+        # Check for float
         if self._peek() == "." and self._peek(1) != ".":
-            # Has a dot — it's a float
-            lexeme.append(self._advance())   # consume '.'
+            # If it has a dot, it's a float
+            lexeme.append(self._advance()) 
             while self._peek().isdigit():
                 lexeme.append(self._advance())
             lex = "".join(lexeme)
@@ -210,7 +189,7 @@ class Scanner:
 
         lex = "".join(lexeme)
 
-        # Check if a letter immediately follows a digit sequence → error (e.g. 32432bace)
+        # Check if a letter immediately follows a digit sequence
         if self._peek().isalpha() or self._peek() == "_":
             # Consume the whole malformed token but report error
             bad = list(lex)
@@ -222,8 +201,8 @@ class Scanner:
                 if not c.isdigit():
                     err_col = sc + i
                     self._add_error(
-                        f"Invalid token: digit sequence mixed with identifier chars — "
-                        f"'{bad_lex}'.  Treating leading digits as integer and remainder as identifier.",
+                        f"Invalid token: digit sequence mixed with identifier chars"
+                        f"'{bad_lex}'. Treating leading digits as integer and remainder as identifier.",
                         sl, err_col, bad_lex
                     )
                     # Emit integer for leading digits, then identifier for remainder
@@ -236,19 +215,15 @@ class Scanner:
 
         return Token(TT.INTEGER_LIT, lex, sl, sc, int(lex))
 
-    # ── float starting with '.' ────────────────────────────────────
-
     def _scan_dot_float(self) -> Optional[Token]:
-        """Called when we see '.' and next char is a digit — scan .digit+"""
+        # Called when we see '.' and next char is a digit
         sl, sc = self.line, self.col
-        self._advance()  # consume '.'
+        self._advance() 
         lexeme = ["."]
         while self._peek().isdigit():
             lexeme.append(self._advance())
         lex = "".join(lexeme)
         return Token(TT.FLOAT_LIT, lex, sl, sc, float(lex))
-
-    # ── char literal ───────────────────────────────────────────────
 
     def _scan_char_lit(self) -> Token:
         sl, sc = self.line, self.col
@@ -293,8 +268,6 @@ class Scanner:
             self._advance()
             return f"\\{nxt}"
 
-    # ── string literal ─────────────────────────────────────────────
-
     def _scan_string_lit(self) -> Token:
         sl, sc = self.line, self.col
         self._advance()  # consume opening "
@@ -318,8 +291,6 @@ class Scanner:
         )
         return Token(TT.ERROR, '"' + "".join(chars), sl, sc)
 
-    # ── interpolated string  ` … ` ────────────────────────────────
-
     def _scan_interp_string(self) -> Token:
         sl, sc = self.line, self.col
         self._advance()  # consume opening `
@@ -338,8 +309,6 @@ class Scanner:
         self._add_error("Unterminated interpolated string (missing closing `)", sl, sc)
         return Token(TT.ERROR, "`" + "".join(chars), sl, sc)
 
-    # ── identifier or keyword ──────────────────────────────────────
-
     def _scan_identifier(self) -> Token:
         sl, sc = self.line, self.col
         lexeme = []
@@ -355,8 +324,7 @@ class Scanner:
             return Token(TT.KEYWORD, lex, sl, sc)
         return Token(TT.IDENTIFIER, lex, sl, sc)
 
-    # ── main scan loop ─────────────────────────────────────────────
-
+    # main scan loop
     def scan_all(self) -> Tuple[List[Token], List[LexError]]:
         while True:
             self._skip_whitespace_and_comments()
@@ -367,27 +335,27 @@ class Scanner:
             sl, sc = self.line, self.col
             ch = self._peek()
 
-            # ── string literal ──────────────────────────────────
+            # string literal 
             if ch == '"':
                 self.tokens.append(self._scan_string_lit())
                 continue
 
-            # ── char literal ────────────────────────────────────
+            # char literal
             if ch == "'":
                 self.tokens.append(self._scan_char_lit())
                 continue
 
-            # ── interpolated string ─────────────────────────────
+            # interpolated string
             if ch == "`":
                 self.tokens.append(self._scan_interp_string())
                 continue
 
-            # ── identifier / keyword ────────────────────────────
+            # identifier / keyword
             if ch.isalpha() or ch == "_":
                 self.tokens.append(self._scan_identifier())
                 continue
 
-            # ── numeric: digit-led ──────────────────────────────
+            # numeric: digit-led
             if ch.isdigit():
                 result = self._scan_number()
                 if isinstance(result, tuple):
@@ -396,7 +364,7 @@ class Scanner:
                     self.tokens.append(result)
                 continue
 
-            # ── dot: range (..), float (.digit+), or member (.) ─
+            # dot: range (..), float (.digit+), or member (.)
             if ch == ".":
                 if self._peek(1) == ".":
                     # Range operator  ..
@@ -409,7 +377,7 @@ class Scanner:
                     self._add_token(TT.DOT, ".", sl, sc)
                 continue
 
-            # ── two-char operators ───────────────────────────────
+            # two-char operators
             two = self._peek2()
 
             if two == "==":
@@ -437,7 +405,7 @@ class Scanner:
                 self._advance(); self._advance()
                 self._add_token(TT.MATCH_ARROW, "=>", sl, sc); continue
 
-            # ── single-char operators / punctuation ──────────────
+            # single-char operators / punctuation
             self._advance()  # consume character
 
             single_map = {
@@ -472,10 +440,7 @@ class Scanner:
         return self.tokens, self.errors
 
 
-# ─────────────────────────────────────────────────────────────────
 #  Output formatting
-# ─────────────────────────────────────────────────────────────────
-
 def _header(title: str, width: int = 72) -> str:
     bar = "=" * width
     return f"\n{bar}\n  {title}\n{bar}\n"
@@ -496,7 +461,7 @@ def format_output(
         for i, ln in enumerate(source.splitlines(), 1):
             lines.append(f"  {i:>4} | {ln}")
 
-    # ── Error summary ──────────────────────────────────────────────
+    # Error summary
     lines.append(_header(f"LEXICAL ERRORS  ({len(errors)} found)"))
     if errors:
         for e in errors:
@@ -504,7 +469,7 @@ def format_output(
     else:
         lines.append("  None.")
 
-    # ── Token table ────────────────────────────────────────────────
+    # Token table
     non_eof = [t for t in tokens if t.ttype != TT.EOF]
     lines.append(_header(f"TOKEN STREAM  ({len(non_eof)} tokens)"))
     lines.append(
@@ -518,7 +483,7 @@ def format_output(
             f"{tok.line:>5}  {tok.col:>5}  {attr_s}"
         )
 
-    # ── Stats ──────────────────────────────────────────────────────
+    # Stats
     lines.append(_header("STATISTICS"))
     from collections import Counter
     ttype_counts = Counter(t.ttype for t in tokens if t.ttype != TT.EOF)
@@ -535,10 +500,7 @@ def format_output(
     return "\n".join(lines) + "\n"
 
 
-# ─────────────────────────────────────────────────────────────────
 #  CLI entry point
-# ─────────────────────────────────────────────────────────────────
-
 def main():
     parser = argparse.ArgumentParser(
         description="CSC617M Custom Language Scanner",
@@ -548,7 +510,6 @@ Examples:
   python scanner.py prog1_calculator.src
   python scanner.py prog1_calculator.src -o tokens_out.txt
   python scanner.py prog1_calculator.src --no-src -o tokens_out.txt
-  python scanner.py large_file.txt            (speed test)
         """
     )
     parser.add_argument("source_file", help="Path to source file to tokenize")

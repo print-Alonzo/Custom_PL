@@ -13,7 +13,7 @@
   LEXICAL ERRORS  (4 found)
 ========================================================================
 
-  [LEXICAL ERROR] Line 1, Col 18: Invalid token: digit sequence mixed with identifier chars — '32432bace'.  Treating leading digits as integer and remainder as identifier.  (near: '32432bace')
+  [LEXICAL ERROR] Line 1, Col 18: Invalid token: digit sequence mixed with identifier chars'32432bace'. Treating leading digits as integer and remainder as identifier.  (near: '32432bace')
   [LEXICAL ERROR] Line 2, Col 18: Unterminated string literal (missing closing ")  (near: '"hello world;')
   [LEXICAL ERROR] Line 3, Col 14: Empty character literal
   [LEXICAL ERROR] Line 5, Col 9: Unknown symbol: '@'  (near: '@')
@@ -62,7 +62,7 @@
 
   Total tokens  : 30
   Total errors  : 4
-  Scan time     : 0.127 ms
+  Scan time     : 0.136 ms
   Source lines  : 5
   Source chars  : 101
 

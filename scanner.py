@@ -15,7 +15,6 @@ class TT:
     STRING_LIT    = "STRING_LIT"
     INTERP_STRING = "INTERP_STRING"
     BOOL_LIT      = "BOOL_LIT"
-    RANGE_LIT     = "RANGE_LIT"
 
     # Identifiers & keywords
     IDENTIFIER    = "IDENTIFIER"
@@ -30,7 +29,6 @@ class TT:
     MATCH_ARROW   = "MATCH_ARROW"    # =>
     STRUCT_PTR    = "STRUCT_PTR"     # ->
     ADDR_OP       = "ADDR_OP"        # &
-    DEREF_OP      = "DEREF_OP"       # *
 
     # Punctuation / Delimiters
     SEMICOLON     = "SEMICOLON"      # ;
@@ -43,8 +41,7 @@ class TT:
     LBRACKET      = "LBRACKET"       # [
     RBRACKET      = "RBRACKET"       # ]
     DOT           = "DOT"            # .
-    BACKTICK      = "BACKTICK"       # `
-    UNDERSCORE    = "UNDERSCORE"     # _ 
+    UNDERSCORE    = "UNDERSCORE"     # _
 
     # Special
     EOF           = "EOF"
@@ -170,7 +167,7 @@ class Scanner:
 
             break
 
-    def _scan_number(self) -> Token:
+    def _scan_number(self) -> None:
         sl, sc = self.line, self.col
         lexeme = []
 
@@ -180,40 +177,37 @@ class Scanner:
 
         # Check for float
         if self._peek() == "." and self._peek(1) != ".":
-            # If it has a dot, it's a float
-            lexeme.append(self._advance()) 
+            lexeme.append(self._advance())
             while self._peek().isdigit():
                 lexeme.append(self._advance())
             lex = "".join(lexeme)
-            return Token(TT.FLOAT_LIT, lex, sl, sc, float(lex))
+            self.tokens.append(Token(TT.FLOAT_LIT, lex, sl, sc, float(lex)))
+            return
 
         lex = "".join(lexeme)
 
         # Check if a letter immediately follows a digit sequence
         if self._peek().isalpha() or self._peek() == "_":
-            # Consume the whole malformed token but report error
             bad = list(lex)
             while self._peek().isalnum() or self._peek() == "_":
                 bad.append(self._advance())
             bad_lex = "".join(bad)
-            # Find position of first non-digit
             for i, c in enumerate(bad_lex):
                 if not c.isdigit():
-                    err_col = sc + i
                     self._add_error(
                         f"Invalid token: digit sequence mixed with identifier chars"
                         f"'{bad_lex}'. Treating leading digits as integer and remainder as identifier.",
-                        sl, err_col, bad_lex
+                        sl, sc + i, bad_lex
                     )
-                    # Emit integer for leading digits, then identifier for remainder
                     digits = bad_lex[:i]
                     rest   = bad_lex[i:]
-                    t1 = Token(TT.INTEGER_LIT, digits, sl, sc, int(digits))
-                    t2 = Token(TT.IDENTIFIER, rest, sl, sc + i)
-                    return t1, t2   # special tuple return handled in scan_all
-            return Token(TT.INTEGER_LIT, lex, sl, sc, int(lex))
+                    self.tokens.extend([
+                        Token(TT.INTEGER_LIT, digits, sl, sc, int(digits)),
+                        Token(TT.IDENTIFIER, rest, sl, sc + i),
+                    ])
+                    return
 
-        return Token(TT.INTEGER_LIT, lex, sl, sc, int(lex))
+        self.tokens.append(Token(TT.INTEGER_LIT, lex, sl, sc, int(lex)))
 
     def _scan_dot_float(self) -> Optional[Token]:
         # Called when we see '.' and next char is a digit
@@ -357,11 +351,7 @@ class Scanner:
 
             # numeric: digit-led
             if ch.isdigit():
-                result = self._scan_number()
-                if isinstance(result, tuple):
-                    self.tokens.extend(result)
-                else:
-                    self.tokens.append(result)
+                self._scan_number()
                 continue
 
             # dot: range (..), float (.digit+), or member (.)

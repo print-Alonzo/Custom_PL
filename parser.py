@@ -50,6 +50,7 @@ class Parser:
         self.tokens = tokens
         self.pos = 0
         self.errors = []
+        self._fn_name_tokens: dict = {}
 
     def current(self):
         return self.tokens[self.pos] if self.pos < len(self.tokens) else self.tokens[-1]
@@ -121,7 +122,34 @@ class Parser:
                 self.synchronize()
                 if not self.at_end() and not self.check(TT.RBRACE):
                     self.pos += 1
+        self._validate_program_structure(declarations)
         return Node("Program", {"declarations": declarations})
+
+    def _validate_program_structure(self, declarations):
+        eof_tok = self.tokens[-1]
+
+        func_decls = [d for d in declarations if d.kind == "FunctionDecl"]
+        if not func_decls:
+            self.errors.append(ParseError("Program must define at least one function", eof_tok))
+            return
+
+        last_fn = func_decls[-1]
+        fn_name = last_fn.fields.get("name")
+        fn_tok = self._fn_name_tokens.get(fn_name, eof_tok)
+        if fn_name != "main":
+            self.errors.append(ParseError(
+                f"Expected 'main' as the last function declaration, found '{fn_name}'",
+                fn_tok,
+            ))
+            return
+
+        ret = last_fn.fields.get("return_type")
+        if not (isinstance(ret, Node) and ret.kind == "Type" and ret.fields.get("name") == "void"):
+            self.errors.append(ParseError("'main' function must have return type 'void'", fn_tok))
+
+        params = last_fn.fields.get("params", [])
+        if params:
+            self.errors.append(ParseError("'main' function must have no parameters", fn_tok))
 
     def parse_top_level(self):
         if self.check_keyword("struct"):
@@ -129,12 +157,14 @@ class Parser:
         if self.check_keyword("typedef"):
             return self.parse_typedef_decl()
         if self.check(TT.KEYWORD) and self.current().lexeme in DECL_KEYWORDS:
+            if self.current().lexeme in {"val", "var"}:
+                self.error(f"'{self.current().lexeme}' declarations are not allowed at global scope")
             return self.parse_var_decl(require_semicolon=True)
 
-        typ = self.parse_type(allow_tuple=True)
-        name = self.expect(TT.IDENTIFIER, message="Expected declaration name").lexeme
+        typ = self.parse_type(allow_tuple=True, allow_void=True)
+        name_tok = self.expect(TT.IDENTIFIER, message="Expected declaration name")
         if self.check(TT.LPAREN):
-            return self.finish_function_decl(typ, name)
+            return self.finish_function_decl(typ, name_tok)
 
         self.error("Expected function parameter list after top-level declaration")
         raise RuntimeError()
@@ -147,12 +177,15 @@ class Parser:
         fields = []
         while not self.check(TT.RBRACE) and not self.at_end():
             field_type = self.parse_type()
-            field_name = self.parse_declarator_name()
+            while True:
+                field_name = self.parse_declarator_name()
+                fields.append(Node("Field", {
+                    "name": field_name["name"],
+                    "type": merge_type(field_type, field_name),
+                }))
+                if not self.match(TT.COMMA):
+                    break
             self.expect(TT.SEMICOLON, message="Expected ';' after struct field")
-            fields.append(Node("Field", {
-                "name": field_name["name"],
-                "type": merge_type(field_type, field_name),
-            }))
 
         self.expect(TT.RBRACE, message="Expected '}' after struct body")
         self.expect(TT.SEMICOLON, message="Expected ';' after struct declaration")
@@ -160,12 +193,43 @@ class Parser:
 
     def parse_typedef_decl(self):
         self.expect_keyword("typedef")
-        aliased = self.parse_type()
+        # Detect inline struct definition: typedef struct Foo { ... } Alias;
+        if self._peek_inline_struct():
+            self.expect_keyword("struct")
+            struct_name = self.expect(TT.IDENTIFIER, message="Expected struct name in typedef").lexeme
+            self.expect(TT.LBRACE, message="Expected '{' before inline struct fields")
+            fields = []
+            while not self.check(TT.RBRACE) and not self.at_end():
+                field_type = self.parse_type()
+                while True:
+                    field_name = self.parse_declarator_name()
+                    fields.append(Node("Field", {
+                        "name": field_name["name"],
+                        "type": merge_type(field_type, field_name),
+                    }))
+                    if not self.match(TT.COMMA):
+                        break
+                self.expect(TT.SEMICOLON, message="Expected ';' after struct field")
+            self.expect(TT.RBRACE, message="Expected '}' after inline struct body")
+            aliased = Node("StructDef", {"name": struct_name, "fields": fields})
+        else:
+            aliased = self.parse_type()
         name = self.expect(TT.IDENTIFIER, message="Expected typedef alias name").lexeme
         self.expect(TT.SEMICOLON, message="Expected ';' after typedef")
         return Node("TypedefDecl", {"name": name, "aliased_type": aliased})
 
-    def finish_function_decl(self, return_type, name):
+    def _peek_inline_struct(self):
+        return (
+            self.pos + 2 < len(self.tokens)
+            and self.tokens[self.pos].ttype == TT.KEYWORD
+            and self.tokens[self.pos].lexeme == "struct"
+            and self.tokens[self.pos + 1].ttype == TT.IDENTIFIER
+            and self.tokens[self.pos + 2].ttype == TT.LBRACE
+        )
+
+    def finish_function_decl(self, return_type, name_tok):
+        name = name_tok.lexeme
+        self._fn_name_tokens[name] = name_tok
         self.expect(TT.LPAREN)
         params = []
 
@@ -189,18 +253,23 @@ class Parser:
             "body": body,
         })
 
-    def parse_type(self, allow_tuple=False):
+    def parse_type(self, allow_tuple=False, allow_void=False):
         if allow_tuple and self.match(TT.LPAREN):
             elements = [self.parse_type()]
             while self.match(TT.COMMA):
                 elements.append(self.parse_type())
             self.expect(TT.RPAREN, message="Expected ')' after tuple return type")
+            if len(elements) < 2:
+                self.error("Tuple return type must contain at least two types")
             return Node("TupleType", {"elements": elements})
 
         if self.match_keyword("struct"):
             name = self.expect(TT.IDENTIFIER, message="Expected struct type name").lexeme
             base = Node("StructType", {"name": name})
         elif self.check(TT.KEYWORD) and self.current().lexeme in TYPE_KEYWORDS:
+            if self.current().lexeme == "void" and not allow_void:
+                self.error("'void' is not a valid type here")
+                raise RuntimeError()
             base = Node("Type", {"name": self.current().lexeme})
             self.pos += 1
         elif self.check(TT.IDENTIFIER):
@@ -234,26 +303,73 @@ class Parser:
 
     def parse_block(self):
         self.expect(TT.LBRACE, message="Expected '{' before block")
+        declarations = []
         statements = []
 
-        while not self.check(TT.RBRACE) and not self.at_end():
+        while not self.check(TT.RBRACE) and not self.at_end() and self._at_block_decl():
             try:
-                statements.append(self.parse_statement())
+                declarations.append(self._parse_block_decl())
             except RuntimeError:
                 self.synchronize()
                 if not self.at_end() and not self.check(TT.RBRACE):
                     self.pos += 1
 
+        while not self.check(TT.RBRACE) and not self.at_end():
+            if self._at_block_decl():
+                self.error("Variable declarations must appear before statements in a block")
+                try:
+                    self._parse_block_decl()
+                except RuntimeError:
+                    self.synchronize()
+                    if not self.at_end() and not self.check(TT.RBRACE):
+                        self.pos += 1
+            else:
+                try:
+                    statements.append(self.parse_statement())
+                except RuntimeError:
+                    self.synchronize()
+                    if not self.at_end() and not self.check(TT.RBRACE):
+                        self.pos += 1
+
         self.expect(TT.RBRACE, message="Expected '}' after block")
-        return Node("Block", {"statements": statements})
+        return Node("Block", {"declarations": declarations, "statements": statements})
+
+    def _at_block_decl(self):
+        return (
+            (self.check(TT.KEYWORD) and self.current().lexeme in {"val", "var"}) or
+            self.check_keyword("let")
+        )
+
+    def _parse_block_decl(self):
+        if self.check_keyword("let"):
+            return self.parse_let_stmt()
+        return self.parse_var_decl(require_semicolon=True)
+
+    def parse_multi_assign_stmt(self):
+        """Parse <multi_assign>: typed multi-lvalue = expr_list/func_call."""
+        lvalues = []
+        first_type = self.parse_type()
+        first_name = self.expect(TT.IDENTIFIER, message="Expected identifier after type").lexeme
+        lvalues.append({"type": first_type, "name": first_name})
+
+        while self.match(TT.COMMA):
+            if self.check(TT.KEYWORD) and self.current().lexeme in TYPE_KEYWORDS:
+                next_type = self.parse_type()
+            else:
+                next_type = first_type
+            next_name = self.expect(TT.IDENTIFIER, message="Expected identifier in multi-assign").lexeme
+            lvalues.append({"type": next_type, "name": next_name})
+
+        self.expect(TT.ASSIGN_OP, message="Expected '=' in multi-assign statement")
+        values = [self.parse_expression()]
+        while self.match(TT.COMMA):
+            values.append(self.parse_expression())
+        self.expect(TT.SEMICOLON, message="Expected ';' after multi-assign")
+        return Node("MultiAssign", {"lvalues": lvalues, "values": values})
 
     def parse_statement(self):
         if self.check(TT.LBRACE):
             return self.parse_block()
-        if self.check(TT.KEYWORD) and self.current().lexeme in DECL_KEYWORDS:
-            return self.parse_var_decl(require_semicolon=True)
-        if self.check_keyword("let"):
-            return self.parse_let_stmt()
         if self.check_keyword("if"):
             return self.parse_if_stmt()
         if self.check_keyword("for"):
@@ -276,6 +392,8 @@ class Parser:
             return self.parse_try_stmt()
         if self.check_keyword("throw"):
             return self.parse_throw_stmt()
+        if self.check(TT.KEYWORD) and self.current().lexeme in TYPE_KEYWORDS:
+            return self.parse_multi_assign_stmt()
         return self.parse_expr_stmt()
 
     def parse_var_decl(self, require_semicolon):
@@ -283,21 +401,36 @@ class Parser:
         self.pos += 1
         typ = self.parse_type()
         declarators = []
+        is_const = mutability == "const"
 
         while True:
             name_info = self.parse_declarator_name()
-            initializer = self.parse_initializer() if self.match(TT.ASSIGN_OP) else None
+            if is_const:
+                self.expect(TT.ASSIGN_OP, message="Expected '=' after const declarator name")
+                initializer = self.parse_literal()
+            else:
+                initializer = self.parse_initializer() if self.match(TT.ASSIGN_OP) else None
             declarators.append(Node("Declarator", {
                 "name": name_info["name"],
                 "type": merge_type(typ, name_info),
                 "initializer": initializer,
             }))
+            if is_const:
+                break
             if not self.match(TT.COMMA):
                 break
 
         if require_semicolon:
             self.expect(TT.SEMICOLON, message="Expected ';' after declaration")
         return Node("VarDecl", {"mutability": mutability, "declarators": declarators})
+
+    def parse_literal(self):
+        tok = self.current()
+        if tok.ttype in {TT.INTEGER_LIT, TT.FLOAT_LIT, TT.STRING_LIT, TT.CHAR_LIT, TT.BOOL_LIT}:
+            self.pos += 1
+            return Node("Literal", {"token_type": tok.ttype, "lexeme": tok.lexeme, "value": tok.attr})
+        self.error("Expected a literal value (int, float, char, string, or bool) in const declaration")
+        raise RuntimeError()
 
     def parse_initializer(self):
         if self.match(TT.LBRACE):
@@ -313,8 +446,18 @@ class Parser:
 
     def parse_let_stmt(self):
         self.expect_keyword("let")
-        names = [self.expect(TT.IDENTIFIER, message="Expected identifier in let declaration").lexeme]
+        first_name = self.expect(TT.IDENTIFIER, message="Expected identifier in let declaration").lexeme
 
+        # Array form: let name[size] = { ... }
+        if self.match(TT.LBRACKET):
+            size = None if self.check(TT.RBRACKET) else self.parse_expression()
+            self.expect(TT.RBRACKET, message="Expected ']' after array size")
+            self.expect(TT.ASSIGN_OP, message="Expected '=' in let array declaration")
+            initializer = self.parse_initializer()
+            self.expect(TT.SEMICOLON, message="Expected ';' after let declaration")
+            return Node("LetDecl", {"names": [first_name], "array_sizes": [size], "values": [initializer]})
+
+        names = [first_name]
         while self.match(TT.COMMA):
             names.append(self.expect(TT.IDENTIFIER, message="Expected identifier after ','").lexeme)
 
@@ -415,11 +558,16 @@ class Parser:
         subject = self.parse_parenthesized_expression("match subject")
         self.expect(TT.LBRACE, message="Expected '{' before match cases")
         cases = []
+        seen_wildcard = False
 
         while not self.check(TT.RBRACE) and not self.at_end():
+            if seen_wildcard:
+                self.error("Unreachable match case after wildcard '_'")
             pattern = self.parse_pattern()
             self.expect(TT.MATCH_ARROW, message="Expected '=>' in match case")
             body = self.parse_statement()
+            if pattern.kind == "WildcardPattern":
+                seen_wildcard = True
             cases.append(Node("MatchCase", {"pattern": pattern, "body": body}))
 
         self.expect(TT.RBRACE, message="Expected '}' after match cases")
@@ -434,26 +582,24 @@ class Parser:
     def parse_try_stmt(self):
         self.expect_keyword("try")
         body = self.parse_block()
-        catch_name = None
-        catch_body = None
+        catch_clauses = []
         finally_body = None
 
-        if self.match_keyword("catch"):
+        while self.match_keyword("catch"):
             self.expect(TT.LPAREN, message="Expected '(' after catch")
             catch_name = self.expect(TT.IDENTIFIER, message="Expected catch variable").lexeme
             self.expect(TT.RPAREN, message="Expected ')' after catch variable")
-            catch_body = self.parse_block()
+            catch_clauses.append(Node("CatchClause", {"name": catch_name, "body": self.parse_block()}))
 
         if self.match_keyword("finally"):
             finally_body = self.parse_block()
 
-        if catch_body is None and finally_body is None:
-            self.error("Expected catch or finally after try block")
+        if not catch_clauses:
+            self.error("Expected at least one catch clause after try block")
 
         return Node("TryStmt", {
             "body": body,
-            "catch_name": catch_name,
-            "catch_body": catch_body,
+            "catch_clauses": catch_clauses,
             "finally_body": finally_body,
         })
 
@@ -476,15 +622,16 @@ class Parser:
 
     def parse_argument_list(self):
         self.expect(TT.LPAREN, message="Expected '(' before arguments")
-        args = []
+        return self._parse_call_args_inner()
 
+    def _parse_call_args_inner(self):
+        args = []
         if not self.check(TT.RPAREN):
             while True:
                 args.append(self.parse_argument())
                 if not self.match(TT.COMMA):
                     break
-
-        self.expect(TT.RPAREN, message="Expected ')' after arguments")
+        self.expect(TT.RPAREN, message="Expected ')' after call arguments")
         return args
 
     def parse_argument(self):
@@ -543,7 +690,12 @@ class Parser:
     def parse_range(self):
         expr = self.parse_term()
         while self.match(TT.RANGE_OP):
-            expr = Node("RangeExpr", {"start": expr, "end": self.parse_term()})
+            right = self.parse_term()
+            if not (isinstance(expr, Node) and expr.kind == "Literal" and expr.fields.get("token_type") == TT.INTEGER_LIT):
+                self.error("Range operands must be integer literals")
+            if not (isinstance(right, Node) and right.kind == "Literal" and right.fields.get("token_type") == TT.INTEGER_LIT):
+                self.error("Range operands must be integer literals")
+            expr = Node("RangeExpr", {"start": expr, "end": right})
         return expr
 
     def parse_term(self):
@@ -566,6 +718,7 @@ class Parser:
         if (
             self.check(TT.LOGIC_OP, "!")
             or self.check(TT.ARITH_OP, "-")
+            or self.check(TT.ARITH_OP, "+")
             or self.check(TT.ARITH_OP, "*")
             or self.check(TT.ADDR_OP)
         ):
@@ -579,14 +732,7 @@ class Parser:
 
         while True:
             if self.match(TT.LPAREN):
-                args = []
-                if not self.check(TT.RPAREN):
-                    while True:
-                        args.append(self.parse_argument())
-                        if not self.match(TT.COMMA):
-                            break
-                self.expect(TT.RPAREN, message="Expected ')' after call arguments")
-                expr = Node("CallExpr", {"callee": expr, "args": args})
+                expr = Node("CallExpr", {"callee": expr, "args": self._parse_call_args_inner()})
             elif self.match(TT.LBRACKET):
                 index = self.parse_expression()
                 self.expect(TT.RBRACKET, message="Expected ']' after index")
@@ -604,6 +750,10 @@ class Parser:
 
     def parse_primary(self):
         tok = self.current()
+
+        if tok.ttype == TT.ERROR:
+            self.pos += 1   # consume so the parser advances past the bad token
+            raise RuntimeError()  # triggers synchronize(); lex error already recorded
 
         if tok.ttype in {
             TT.INTEGER_LIT,
@@ -640,11 +790,16 @@ class Parser:
         subject = self.parse_parenthesized_expression("match subject")
         self.expect(TT.LBRACE, message="Expected '{' before match expression cases")
         cases = []
+        seen_wildcard = False
 
         while not self.check(TT.RBRACE) and not self.at_end():
+            if seen_wildcard:
+                self.error("Unreachable match expression case after wildcard '_'")
             pattern = self.parse_pattern()
             self.expect(TT.MATCH_ARROW, message="Expected '=>' in match expression case")
             value = self.parse_expression()
+            if pattern.kind == "WildcardPattern":
+                seen_wildcard = True
             cases.append(Node("MatchCase", {"pattern": pattern, "value": value}))
             self.match(TT.COMMA)
 

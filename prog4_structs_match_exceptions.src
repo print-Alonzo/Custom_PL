@@ -1,7 +1,16 @@
 // prog4_structs_match_exceptions.src
-// Demonstrates: struct, typedef, match statement, match expression,
-//               guard, try/catch/finally, throw, string & char literals,
-//               escape sequences, interpolated strings, bool type
+// Demonstrates: struct, typedef (alias & inline struct def), empty struct body,
+//               match statement (with relational pattern, no wildcard),
+//               match expression, pointer member access (->),
+//               guard, try/catch/finally, multiple catch, try without finally,
+//               throw, string & char literals, escape sequences,
+//               interpolated strings, bool type
+
+// ---- Typedef with inline struct definition (typedef struct_def identifier) ----
+typedef struct Color { int r; int g; int b; } RGB;
+
+// ---- Empty struct body (field_list → ε) ----
+struct Tag {};
 
 // ---- Struct: Student record ----
 struct Student {
@@ -17,16 +26,25 @@ typedef int StudentID;
 // ---- Typedef wrapping a struct ----
 typedef struct Student StudentRecord;
 
-// ---- Returns a letter grade using a match expression ----
+// ---- Returns a letter grade using if-else ----
 string grade_letter(float gpa) {
-    let letter = match (gpa) {
-        3.5..4.0 => "A",
-        3.0..3.49 => "B",
-        2.5..2.99 => "C",
-        2.0..2.49 => "D",
-        _ => "F"
-    };
-    return letter;
+    if (gpa >= 3.5) {
+        return "A";
+    } else {
+        if (gpa >= 3.0) {
+            return "B";
+        } else {
+            if (gpa >= 2.5) {
+                return "C";
+            } else {
+                if (gpa >= 2.0) {
+                    return "D";
+                } else {
+                    return "F";
+                }
+            }
+        }
+    }
 }
 
 // ---- Validates a student ID; throws on bad input ----
@@ -44,56 +62,87 @@ void handle_status(int code) {
         1 => print("Warning: low memory");
         2 => print("Error: disk full");
         3..9 => print("Unknown error code");
+        code > 9 => print("Very high error code");
         _ => print("Unrecognized code");
     }
 }
 
 void main() {
-    // Struct instantiation
     var struct Student s1;
+    var struct Student *sp;
+    var string info, grade, msg, severity;
+    var int status;
+    var char newline, tab, quote;
+    var bool p, q;
+
+    // Struct instantiation
     s1.name = "Alonzo";
     s1.id = 20220001;
     s1.gpa = 3.75;
     s1.enrolled = true;
 
     // Interpolated string with struct fields
-    let info = `Student: {s1.name}  ID: {s1.id}  GPA: {s1.gpa}`;
+    info = `Student: {s1.name}  ID: {s1.id}  GPA: {s1.gpa}`;
     print(info);
     print("Enrolled:", s1.enrolled);
 
     // Match expression for grade
-    let grade = grade_letter(s1.gpa);
+    grade = grade_letter(s1.gpa);
     print("Letter grade:", grade);
 
+    // Pointer member access via -> (lvalue and expression forms)
+    sp = &s1;
+    sp->name = "Updated";
+    print("Via pointer->name:", sp->name, "GPA:", sp->gpa);
+
     // Match statement on integer
-    var int status;
     status = 2;
     handle_status(status);
 
-    // Try / catch / finally block
+    // Match expression (match_expr — match used as a value)
+    severity = match (status) {
+        0 => "low",
+        1 => "medium",
+        _ => "high"
+    };
+    print("Severity:", severity);
+
+    // Match statement without wildcard (match_default → ε)
+    match (p) {
+        true => print("p is true");
+        false => print("p is false");
+    }
+
+    // Multiple catch clauses (catch_list → catch_clause catch_list)
     try {
         validate_id(20220001);   // valid
         validate_id(-5);         // throws
     } catch (e) {
         print("Caught exception:", e);
+    } catch (err) {
+        print("Second handler:", err);
     } finally {
         print("Validation routine complete.");
     }
 
+    // try/catch without finally (finally_clause → ε)
+    try {
+        validate_id(99999);
+    } catch (ex) {
+        print("Validation passed or caught:", ex);
+    }
+
     // Char literals and escape sequences
-    var char newline, tab, quote;
     newline = '\n';
     tab = '\t';
     quote = '\"';
     print("Special chars stored:", newline, tab, quote);
 
     // String with escape sequences
-    var string msg;
     msg = "Line1\nLine2\tTabbed\\Backslash";
     print(msg);
 
     // Boolean logic
-    var bool p, q;
     p = true;
     q = false;
     if (p && !q) {

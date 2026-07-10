@@ -14,7 +14,7 @@ This repository contains the interpreter project for CSC617M. The group designed
 
 The scanner and parser milestones are complete. The interpreter is next.
 
-The language supports typed variable/constant declarations, control flow (if-else, for, while, repeat-until), functions with multiple parameter-passing schemes, structs, pattern matching, exception handling, interpolated strings, and pointer operations (bonus).
+The language supports typed variable/constant declarations, control flow (if-else, for, while, repeat-until), functions with multiple parameter-passing schemes, structs, pattern matching, exception handling, and interpolated strings.
 
 ---
 
@@ -163,7 +163,7 @@ With `--ast`:
 | Relational | `REL_OP` (`==` `!=` `<` `>` `<=` `>=`) |
 | Logical | `LOGIC_OP` (`&&` `\|\|` `!`) |
 | Assignment | `ASSIGN_OP` (`=`) |
-| Special ops | `RANGE_OP` (`..`), `MATCH_ARROW` (`=>`), `STRUCT_PTR` (`->`), `ADDR_OP` (`&`) |
+| Special ops | `RANGE_OP` (`..`), `MATCH_ARROW` (`=>`) |
 | Delimiters | `SEMICOLON`, `COMMA`, `COLON`, `LPAREN`, `RPAREN`, `LBRACE`, `RBRACE`, `LBRACKET`, `RBRACKET`, `DOT` |
 | Special | `EOF`, `ERROR` |
 
@@ -204,7 +204,7 @@ guard  try     catch   finally throw   _
 | `UnaryExpr` | `op`, `operand` |
 | `CallExpr` | `callee`, `args` |
 | `IndexExpr` | `object`, `index` |
-| `MemberExpr` | `object`, `field`, `op` (`.` or `->`) |
+| `MemberExpr` | `object`, `field`, `op` (`.`) |
 | `Literal` | `token_type`, `lexeme`, `value` |
 | `Identifier` | `name` |
 
@@ -238,9 +238,9 @@ The parser uses recursive descent with error recovery — it synchronizes to the
 |---|---|
 | `prog1_calculator.src` | `const`, `val`, `var`, `int`/`float`/`string`, `input`, `print`, arithmetic, nested `if-else` |
 | `prog2_loops_arrays.src` | C-style `for`, `for-in-range`, `for-in-collection`, `while`, `repeat-until`, arrays, `break`, `continue` |
-| `prog3_functions.src` | Function declarations, call-by-value, pointer params, array params, multiple return values, recursion, `let`, named parameters, interpolated strings |
+| `prog3_functions.src` | Function declarations, call-by-value, array params, multiple return values, recursion, `let`, named parameters, interpolated strings |
 | `prog4_structs_match_exceptions.src` | `struct`, `typedef`, `match` statement, `match` expression, `guard`, `try`/`catch`/`finally`, `throw`, `char`/`bool` literals, escape sequences |
-| `prog5_advanced.src` | Pointers and double dereference (bonus), multi-assignment, `let` destructuring, complex expressions, nested loops |
+| `prog5_advanced.src` | Multi-assignment, `let` destructuring, complex expressions, nested loops |
 
 ---
 

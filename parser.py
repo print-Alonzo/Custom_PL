@@ -279,18 +279,9 @@ class Parser:
             self.error("Expected type")
             raise RuntimeError()
 
-        depth = 0
-        while self.match(TT.ARITH_OP, "*"):
-            depth += 1
-        if depth:
-            base = Node("PointerType", {"base": base, "depth": depth})
         return base
 
     def parse_declarator_name(self):
-        depth = 0
-        while self.match(TT.ARITH_OP, "*"):
-            depth += 1
-
         name = self.expect(TT.IDENTIFIER, message="Expected identifier").lexeme
         arrays = []
 
@@ -299,7 +290,7 @@ class Parser:
             self.expect(TT.RBRACKET, message="Expected ']' after array size")
             arrays.append(size)
 
-        return {"name": name, "pointer_depth": depth, "arrays": arrays}
+        return {"name": name, "arrays": arrays}
 
     def parse_block(self):
         self.expect(TT.LBRACE, message="Expected '{' before block")
@@ -719,8 +710,6 @@ class Parser:
             self.check(TT.LOGIC_OP, "!")
             or self.check(TT.ARITH_OP, "-")
             or self.check(TT.ARITH_OP, "+")
-            or self.check(TT.ARITH_OP, "*")
-            or self.check(TT.ADDR_OP)
         ):
             op = self.current().lexeme
             self.pos += 1
@@ -740,9 +729,6 @@ class Parser:
             elif self.match(TT.DOT):
                 field = self.expect(TT.IDENTIFIER, message="Expected field name after '.'").lexeme
                 expr = Node("MemberExpr", {"object": expr, "field": field, "op": "."})
-            elif self.match(TT.STRUCT_PTR):
-                field = self.expect(TT.IDENTIFIER, message="Expected field name after '->'").lexeme
-                expr = Node("MemberExpr", {"object": expr, "field": field, "op": "->"})
             else:
                 break
 
@@ -809,9 +795,6 @@ class Parser:
 
 def merge_type(base, declarator):
     typ = base
-
-    if declarator["pointer_depth"]:
-        typ = Node("PointerType", {"base": typ, "depth": declarator["pointer_depth"]})
 
     for size in declarator["arrays"]:
         typ = Node("ArrayType", {"base": typ, "size": size})

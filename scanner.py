@@ -27,8 +27,6 @@ class TT:
     ASSIGN_OP     = "ASSIGN_OP"      # =
     RANGE_OP      = "RANGE_OP"       # ..
     MATCH_ARROW   = "MATCH_ARROW"    # =>
-    STRUCT_PTR    = "STRUCT_PTR"     # ->
-    ADDR_OP       = "ADDR_OP"        # &
 
     # Punctuation / Delimiters
     SEMICOLON     = "SEMICOLON"      # ;
@@ -388,9 +386,6 @@ class Scanner:
             if two == "||":
                 self._advance(); self._advance()
                 self._add_token(TT.LOGIC_OP, "||", sl, sc); continue
-            if two == "->":
-                self._advance(); self._advance()
-                self._add_token(TT.STRUCT_PTR, "->", sl, sc); continue
             if two == "=>":
                 self._advance(); self._advance()
                 self._add_token(TT.MATCH_ARROW, "=>", sl, sc); continue
@@ -408,7 +403,6 @@ class Scanner:
                 ">": (TT.REL_OP,    ">"),
                 "!": (TT.LOGIC_OP,  "!"),
                 "=": (TT.ASSIGN_OP, "="),
-                "&": (TT.ADDR_OP,   "&"),
                 ";": (TT.SEMICOLON, ";"),
                 ",": (TT.COMMA,     ","),
                 ":": (TT.COLON,     ":"),

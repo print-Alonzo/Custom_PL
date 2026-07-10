@@ -1,5 +1,5 @@
 // prog3_functions.src
-// Demonstrates: function declarations, call by value, call by reference (pointer),
+// Demonstrates: function declarations, call by value,
 //               array parameters, multiple return values (multi_type, 3+ types),
 //               return statements, recursive function, let declarations,
 //               multiple catch clauses, try without finally, char literal in arithmetic
@@ -12,12 +12,9 @@ int abs_val(int x) {
     return x;
 }
 
-// ---- Swap two integers via pointer parameters ----
-void swap(int *a, int *b) {
-    var int tmp;
-    tmp = *a;
-    *a = *b;
-    *b = tmp;
+// ---- Swap two integers via multiple return values ----
+(int, int) swap(int a, int b) {
+    return b, a;
 }
 
 // ---- Sum an array (array parameter = call by reference) ----
@@ -88,8 +85,8 @@ void main() {
     x = 10;
     y = 20;
     print("Before swap: x =", x, " y =", y);
-    swap(&x, &y);
-    print("After swap:  x =", x, " y =", y);
+    int sx, sy = swap(x, y);
+    print("After swap:  x =", sx, " y =", sy);
 
     total = array_sum(data, 6);
     print("Array sum:", total);

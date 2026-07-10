@@ -1,28 +1,19 @@
 // prog5_advanced.src
-// Demonstrates: pointers & dereferencing (bonus), multi-assignment,
+// Demonstrates: multi-assignment,
 //               let destructuring, complex boolean & arithmetic expressions,
 //               nested loops/conditionals, multi-line comments,
 //               all remaining constructs not shown in prior programs,
 //               all four multi_assign statement forms (shared_type_lvalue,
 //               multi_lvalue, each with func_call_expr and expr_list)
 
-/*
- * Linked-list node using pointer (bonus feature).
- * Each node stores an integer value and a pointer to the next node.
- */
-struct Node {
-    int value;
-    struct Node *next;
-};
-
-// ---- Pointer arithmetic: increment via pointer ----
-void increment(int *n) {
-    *n = *n + 1;
+// ---- Increment by returning the new value ----
+int increment(int n) {
+    return n + 1;
 }
 
-// ---- Double pointer dereference ----
-void double_deref(int **pp) {
-    **pp = **pp * 2;
+// ---- Double a value ----
+int double_value(int n) {
+    return n * 2;
 }
 
 // ---- Multi-return: quotient and remainder ----
@@ -79,8 +70,6 @@ void print_multiplication_table(int size) {
 
 void main() {
     var int counter;
-    var int *ptr;
-    var int **dptr;
     let q, r = divmod(17, 5);
     let x, y, z = 10, 20, 30;
     var float result;
@@ -88,20 +77,17 @@ void main() {
     var int a, b;
     var int attempts;
 
-    // ---- Pointer usage ----
+    // ---- Value-returning helpers ----
     counter = 0;
-    increment(&counter);
-    increment(&counter);
+    counter = increment(counter);
+    counter = increment(counter);
     print("Counter after 2 increments:", counter);
 
-    ptr = &counter;
-    *ptr = *ptr + 10;
-    print("Counter via pointer add:", counter);
+    counter = counter + 10;
+    print("Counter after add:", counter);
 
-    // Double-pointer
-    dptr = &ptr;
-    double_deref(dptr);
-    print("Counter after double deref:", counter);
+    counter = double_value(counter);
+    print("Counter after doubling:", counter);
 
     // ---- multi_assign: shared_type_lvalue = func_call_expr ----
     int a3, b3 = divmod(10, 3);

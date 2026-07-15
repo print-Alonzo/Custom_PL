@@ -1,26 +1,19 @@
 // prog5_advanced.src
-// Demonstrates: pointers & dereferencing (bonus), multi-assignment,
+// Demonstrates: multi-assignment,
 //               let destructuring, complex boolean & arithmetic expressions,
 //               nested loops/conditionals, multi-line comments,
-//               all remaining constructs not shown in prior programs
+//               all remaining constructs not shown in prior programs,
+//               all four multi_assign statement forms (shared_type_lvalue,
+//               multi_lvalue, each with func_call_expr and expr_list)
 
-/*
- * Linked-list node using pointer (bonus feature).
- * Each node stores an integer value and a pointer to the next node.
- */
-struct Node {
-    int value;
-    struct Node *next;
-};
-
-// ---- Pointer arithmetic: increment via pointer ----
-void increment(int *n) {
-    *n = *n + 1;
+// ---- Increment by returning the new value ----
+int increment(int n) {
+    return n + 1;
 }
 
-// ---- Double pointer dereference ----
-void double_deref(int **pp) {
-    **pp = **pp * 2;
+// ---- Double a value ----
+int double_value(int n) {
+    return n * 2;
 }
 
 // ---- Multi-return: quotient and remainder ----
@@ -30,26 +23,30 @@ void double_deref(int **pp) {
 
 // ---- Demonstrates nested match + guard + complex expressions ----
 string classify_number(int n) {
+    var int abs_n;
+    var string sign, parity;
+
     guard (n != 0) else {
         return "zero";
     }
 
-    let sign = match (n > 0) {
-        true => "positive",
-        _ => "negative"
-    };
+    if (n > 0) {
+        sign = "positive";
+    } else {
+        sign = "negative";
+    }
 
-    var int abs_n;
     if (n < 0) {
         abs_n = -n;
     } else {
         abs_n = n;
     }
 
-    let parity = match (abs_n % 2) {
-        0 => "even",
-        _ => "odd"
-    };
+    if (abs_n % 2 == 0) {
+        parity = "even";
+    } else {
+        parity = "odd";
+    }
 
     return `{sign} {parity}`;
 }
@@ -72,41 +69,53 @@ void print_multiplication_table(int size) {
 }
 
 void main() {
-    // ---- Pointer usage ----
     var int counter;
+    let q, r = divmod(17, 5);
+    let x, y, z = 10, 20, 30;
+    var float result;
+    var bool flag;
+    var int a, b;
+    var int attempts;
+
+    // ---- Value-returning helpers ----
     counter = 0;
-    increment(&counter);
-    increment(&counter);
+    counter = increment(counter);
+    counter = increment(counter);
     print("Counter after 2 increments:", counter);
 
-    var int *ptr;
-    ptr = &counter;
-    *ptr = *ptr + 10;
-    print("Counter via pointer add:", counter);
+    counter = counter + 10;
+    print("Counter after add:", counter);
 
-    // Double-pointer
-    var int **dptr;
-    dptr = &ptr;
-    double_deref(dptr);
-    print("Counter after double deref:", counter);
+    counter = double_value(counter);
+    print("Counter after doubling:", counter);
 
-    // ---- Multi-assignment from function ----
-    var int q, r;
-    let q, r = divmod(17, 5);
+    // ---- multi_assign: shared_type_lvalue = func_call_expr ----
+    int a3, b3 = divmod(10, 3);
+    print("shared/func: a3 =", a3, " b3 =", b3);
+
+    // ---- multi_assign: shared_type_lvalue = expr_list ----
+    int c3, d3 = 8, 4;
+    print("shared/expr: c3 =", c3, " d3 =", d3);
+
+    // ---- multi_assign: multi_lvalue = func_call_expr ----
+    int q2, int r2 = divmod(17, 5);
+    print("multi/func: q2 =", q2, " r2 =", r2);
+
+    // ---- multi_assign: multi_lvalue = expr_list ----
+    int q3, int r3 = 3, 1;
+    print("multi/expr: q3 =", q3, " r3 =", r3);
+
+    // ---- Multi-assignment from function (let form) ----
     print("17 div 5: quotient =", q, " remainder =", r);
 
     // ---- let with expression list (no function call) ----
-    var int x, y, z;
-    let x, y, z = 10, 20, 30;
     print("x =", x, "y =", y, "z =", z);
 
     // ---- Complex arithmetic expression ----
-    var float result;
     result = (x + y) * z / (x - 5) + 3.0;
     print("Complex expr result:", result);
 
     // ---- Complex boolean expression ----
-    var bool flag;
     flag = (x > 5 && y < 100) || (z == 30 && !(x == y));
     if (flag) {
         print("Complex bool: true");
@@ -123,7 +132,6 @@ void main() {
     print_multiplication_table(5);
 
     // ---- While with complex condition ----
-    var int a, b;
     a = 1;
     b = 100;
     while (a < b && (a % 7 != 0 || b % 3 != 0)) {
@@ -133,7 +141,6 @@ void main() {
     print("While exit: a =", a, " b =", b);
 
     // ---- Repeat-until with guard inside ----
-    var int attempts;
     attempts = 0;
     repeat {
         attempts = attempts + 1;

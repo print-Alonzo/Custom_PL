@@ -2,15 +2,19 @@
 
 **Course:** CSC617M — Theory of Programming Languages  
 **Group:** 67 Inc.  
-**Milestone:** Scanner (Lexical Analyzer)
+**Current Milestone:** Parser (Syntax Analyzer)
 
 ---
 
 ## Overview
 
-This repository contains the interpreter project for CSC617M. The group designed a new programming language from scratch and is implementing a full interpreter for it in Python. This milestone covers the **scanner (tokenizer)** — the first phase of the interpreter pipeline.
+This repository contains the interpreter project for CSC617M. The group designed a new programming language from scratch and is implementing a full interpreter for it in Python. The interpreter pipeline is:
 
-The language supports a wide set of constructs including typed variable and constant declarations, control flow (if-else, for, while, repeat-until), functions with multiple parameter-passing schemes, structs, pattern matching, exception handling, interpolated strings, and pointer operations (bonus).
+**Scanner → Parser → Interpreter**
+
+The scanner and parser milestones are complete. The interpreter is next.
+
+The language supports typed variable/constant declarations, control flow (if-else, for, while, repeat-until), functions with multiple parameter-passing schemes, structs, pattern matching, exception handling, and interpolated strings.
 
 ---
 
@@ -18,19 +22,21 @@ The language supports a wide set of constructs including typed variable and cons
 
 ```
 .
-├── scanner/
-│   ├── scanner.py                          # Lexical analyzer (main deliverable)
-│   ├── prog1_calculator_tokens.txt         # File-dump output for prog1
-│   ├── prog2_loops_arrays_tokens.txt       # File-dump output for prog2
-│   ├── prog3_functions_tokens.txt          # File-dump output for prog3
-│   ├── prog4_structs_match_exceptions_tokens.txt
-│   └── prog5_advanced_tokens.txt
-├── samples/
-│   ├── prog1_calculator.src                # Sample program 1
-│   ├── prog2_loops_arrays.src              # Sample program 2
-│   ├── prog3_functions.src                 # Sample program 3
-│   ├── prog4_structs_match_exceptions.src  # Sample program 4
-│   └── prog5_advanced.src                  # Sample program 5
+├── scanner.py                                  # Lexical analyzer
+├── parser.py                                   # CLI driver: scans, runs the grammar engine, formats reports
+├── grammar.py                                  # The grammar, as data — edit THIS to change the language
+├── grammar_engine.py                           # Generic combinator engine that walks grammar.py — never edit for language changes
+├── ast_nodes.py                                # Node / ParseError / merge_type, shared by parser.py and grammar.py
+├── prog1_calculator.src                        # Sample program 1
+├── prog1_calculator_tokens.txt                 # Scanner output for prog1
+├── prog2_loops_arrays.src                      # Sample program 2
+├── prog2_loops_arrays_tokens.txt               # Scanner output for prog2
+├── prog3_functions.src                         # Sample program 3
+├── prog3_functions_tokens.txt                  # Scanner output for prog3
+├── prog4_structs_match_exceptions.src          # Sample program 4
+├── prog4_structs_match_exceptions_tokens.txt   # Scanner output for prog4
+├── prog5_advanced.src                          # Sample program 5
+├── prog5_advanced_tokens.txt                   # Scanner output for prog5
 └── README.md
 ```
 
@@ -46,28 +52,87 @@ The language supports a wide set of constructs including typed variable and cons
 ## Running the Scanner
 
 ```bash
-# Display dump — prints token stream to stdout
-python scanner/scanner.py <source_file>
+# Print token stream to stdout
+python scanner.py <source_file>
 
-# File dump — writes token stream to an output file
-python scanner/scanner.py <source_file> -o <output_file>
+# Write token stream to a file
+python scanner.py <source_file> -o <output_file>
 
-# Suppress source code echo (cleaner for large files)
-python scanner/scanner.py <source_file> --no-src
-
-# Combine flags
-python scanner/scanner.py <source_file> --no-src -o tokens.txt
-
-# Help
-python scanner/scanner.py --help
+# Suppress source code echo
+python scanner.py <source_file> --no-src
 ```
 
 ### Example
 
 ```bash
-python scanner/scanner.py samples/prog1_calculator.src
-python scanner/scanner.py samples/prog3_functions.src -o out.txt
+python scanner.py prog1_calculator.src
+python scanner.py prog3_functions.src -o out.txt
 ```
+
+---
+
+## Running the Parser
+
+```bash
+# Parse and print report to stdout
+python parser.py <source_file>
+
+# Write parse report to a file
+python parser.py <source_file> -o <output_file>
+
+# Include the AST as JSON in the report
+python parser.py <source_file> --ast
+```
+
+### Example
+
+```bash
+python parser.py prog1_calculator.src
+python parser.py prog4_structs_match_exceptions.src --ast
+```
+
+---
+
+## Changing the Grammar
+
+The parser is table-driven: the grammar lives as declarative data in
+`grammar.py`, and a generic combinator engine (`grammar_engine.py`) walks
+that table to parse source files. Changing the language means editing
+`grammar.py` only — `grammar_engine.py` has no knowledge of this language's
+syntax and should never need to change.
+
+`grammar.py` builds a `GRAMMAR` dict of named rules out of a small set of
+primitives from `grammar_engine.py`: `Term`/`Kw` (match a token), `Seq`
+(match parts in order), `Alt` (ordered choice), `Star`/`Plus`/`Opt`
+(repetition), `Ref` (reference another named rule, for recursion), `Cut`
+(marks "we're committed to this alternative — later failures are real
+errors, not backtracking"), `And`/`Not` (lookahead), plus helpers `chainl`
+(left-associative binary operators), `comma_list`, and `many_rec`
+(repetition with the same error-recovery behavior as the rest of the
+parser). Each rule's `action` builds the same `Node` AST the interpreter
+consumes.
+
+Example — adding a new statement kind is one rule plus one line wiring it
+into the dispatcher:
+
+```python
+GRAMMAR["my_stmt"] = Seq(
+    Kw("mykeyword"), Cut(),
+    Bind("value", Ref("expression", fail_msg="Expected expression")),
+    Term(TT.SEMICOLON, msg="Expected ';' after mykeyword"),
+    action=lambda ps, c: Node("MyStmt", {"value": c["value"]}),
+)
+
+GRAMMAR["statement"] = Alt(
+    Ref("my_stmt"),   # add here
+    Ref("block"),
+    Ref("if_stmt"),
+    ...
+)
+```
+
+No other file needs to change. See `grammar.py`'s module docstring for more
+detail on the primitives.
 
 ---
 
@@ -79,14 +144,12 @@ Each run produces three sections:
 ```
   1 | const int MAX_TRIES = 3;
   2 | const float PI = 3.14159;
-  ...
 ```
 
-**2. Lexical errors** — with line number, column number, and context
+**2. Lexical errors** — with line number, column, and context
 ```
 [LEXICAL ERROR] Line 3, Col 18: Invalid token: digit sequence mixed with identifier chars
     (near: '32432bace12awf')
-[LEXICAL ERROR] Line 5, Col 16: Unterminated string literal (missing closing ")
 ```
 
 **3. Token stream table**
@@ -107,6 +170,35 @@ Literal tokens carry a coerced attribute value: integers as `int`, floats as `fl
 
 ---
 
+## Parser Output Format
+
+The parse report includes:
+
+**1. Summary** — parse error count and lex error count  
+**2. Parse errors** — each with line number, column, and message  
+**3. Optional AST** (with `--ast`) — full abstract syntax tree as JSON
+
+```
+Parse complete: 0 syntax error(s), 0 lex error(s)
+```
+
+With `--ast`:
+```json
+{
+  "kind": "Program",
+  "declarations": [
+    {
+      "kind": "FunctionDecl",
+      "name": "main",
+      "return_type": "void",
+      ...
+    }
+  ]
+}
+```
+
+---
+
 ## Token Types
 
 | Category | Token Types |
@@ -117,7 +209,7 @@ Literal tokens carry a coerced attribute value: integers as `int`, floats as `fl
 | Relational | `REL_OP` (`==` `!=` `<` `>` `<=` `>=`) |
 | Logical | `LOGIC_OP` (`&&` `\|\|` `!`) |
 | Assignment | `ASSIGN_OP` (`=`) |
-| Special ops | `RANGE_OP` (`..`), `MATCH_ARROW` (`=>`), `STRUCT_PTR` (`->`), `ADDR_OP` (`&`) |
+| Special ops | `RANGE_OP` (`..`), `MATCH_ARROW` (`=>`) |
 | Delimiters | `SEMICOLON`, `COMMA`, `COLON`, `LPAREN`, `RPAREN`, `LBRACE`, `RBRACE`, `LBRACKET`, `RBRACKET`, `DOT` |
 | Special | `EOF`, `ERROR` |
 
@@ -132,9 +224,41 @@ guard  try     catch   finally throw   _
 
 ---
 
+## AST Node Reference
+
+| Kind | Key Fields |
+|---|---|
+| `Program` | `declarations` |
+| `FunctionDecl` | `name`, `return_type`, `params`, `body` |
+| `StructDecl` | `name`, `fields` |
+| `TypedefDecl` | `name`, `aliased_type` |
+| `VarDecl` | `mutability` (`const`/`val`/`var`), `declarators` |
+| `LetDecl` | `names`, `values` |
+| `Block` | `declarations`, `statements` |
+| `IfStmt` | `condition`, `then`, `else` |
+| `ForStmt` | `init`, `condition`, `update`, `body` |
+| `ForInStmt` | `name`, `iterable`, `body` |
+| `WhileStmt` | `condition`, `body` |
+| `RepeatUntilStmt` | `body`, `condition` |
+| `MatchStmt` / `MatchExpr` | `subject`, `cases` |
+| `TryStmt` | `body`, `catch_clauses`, `finally_body` |
+| `GuardStmt` | `condition`, `else_body` |
+| `ThrowStmt` | `value` |
+| `ReturnStmt` | `values` |
+| `AssignExpr` | `target`, `value` |
+| `BinaryExpr` | `op`, `left`, `right` |
+| `UnaryExpr` | `op`, `operand` |
+| `CallExpr` | `callee`, `args` |
+| `IndexExpr` | `object`, `index` |
+| `MemberExpr` | `object`, `field`, `op` (`.`) |
+| `Literal` | `token_type`, `lexeme`, `value` |
+| `Identifier` | `name` |
+
+---
+
 ## Error Detection
 
-The scanner detects and reports the following lexical errors, always with exact line and column:
+### Lexical errors (Scanner)
 
 | Error | Example |
 |---|---|
@@ -143,10 +267,14 @@ The scanner detects and reports the following lexical errors, always with exact 
 | Unterminated character literal | `'A` |
 | Empty character literal | `''` |
 | Unterminated block comment | `/* never closed` |
-| Unknown symbol | `@`, `#`, `$` (outside literals) |
+| Unknown symbol | `@`, `#`, `$` |
 | Unknown escape sequence | `\q` |
 
-The scanner **recovers and continues** after each error — it emits an `ERROR` token and resumes scanning, so all remaining valid tokens are still reported.
+The scanner recovers and continues after each error.
+
+### Syntax errors (Parser)
+
+The parser uses recursive descent with error recovery — it synchronizes to the next statement boundary after each error and continues parsing, so all errors in a file are reported in one pass.
 
 ---
 
@@ -156,9 +284,9 @@ The scanner **recovers and continues** after each error — it emits an `ERROR` 
 |---|---|
 | `prog1_calculator.src` | `const`, `val`, `var`, `int`/`float`/`string`, `input`, `print`, arithmetic, nested `if-else` |
 | `prog2_loops_arrays.src` | C-style `for`, `for-in-range`, `for-in-collection`, `while`, `repeat-until`, arrays, `break`, `continue` |
-| `prog3_functions.src` | Function declarations, call-by-value, pointer params, array params, multiple return values, recursion, `let`, named parameters, interpolated strings |
+| `prog3_functions.src` | Function declarations, call-by-value, array params, multiple return values, recursion, `let`, named parameters, interpolated strings |
 | `prog4_structs_match_exceptions.src` | `struct`, `typedef`, `match` statement, `match` expression, `guard`, `try`/`catch`/`finally`, `throw`, `char`/`bool` literals, escape sequences |
-| `prog5_advanced.src` | Pointers and double dereference (bonus), multi-assignment, `let` destructuring, complex expressions, nested loops |
+| `prog5_advanced.src` | Multi-assignment, `let` destructuring, complex expressions, nested loops |
 
 ---
 
@@ -179,7 +307,7 @@ Scan time    : ~207 ms
 |---|---|---|
 | CFG, Lexical Rules, Intermediate Code Spec, Language Choice | May 28, 2026 | ✅ Done |
 | Scanner | June 11, 2026 | ✅ Done |
-| Parser | July 2, 2026 | 🔲 Upcoming |
+| Parser | July 2, 2026 | ✅ Done |
 | Interpreter Checkpoint Demo | July 30, 2026 | 🔲 Upcoming |
 | Final Project Demo & Submission | August 6, 2026 | 🔲 Upcoming |
 
@@ -187,4 +315,4 @@ Scan time    : ~207 ms
 
 ## Implementation Language
 
-The interpreter is implemented in **Python 3**. Chosen for its dynamic typing, native dict/list/tuple data structures (ideal for symbol tables and token streams), strong string processing, and suitability for recursive descent parsing. See `_CSC617M__Syntax_Definition.pdf` for the full justification.
+The interpreter is implemented in **Python 3**. Chosen for its dynamic typing, native dict/list/tuple data structures (ideal for symbol tables and token streams), strong string processing, and suitability for recursive descent parsing.

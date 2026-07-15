@@ -86,9 +86,12 @@ separate from the machinery that walks it:
   `parser.py` and `grammar.py`.
 - **`grammar_engine.py`** — a generic PEG-style combinator engine
   (`Term`/`Kw`, `Seq`, `Alt`, `Star`/`Plus`/`Opt`, `Ref`, `Cut`, `And`/`Not`,
-  `Bind`, plus helpers `chainl`, `comma_list`, `many_rec`) and the `Engine`
-  that drives a grammar table over a token list. **Has zero knowledge of this
-  language's syntax and should never need to change** when the grammar changes.
+  `Bind`, `Emit`/`Abort`, `Rule` (adapts a plain function for productions
+  that don't compose cleanly out of the other primitives — the most-used one
+  in practice), plus helpers `chainl`, `comma_list`, `many_rec`) and the
+  `Engine` that drives a grammar table over a token list. **Has zero
+  knowledge of this language's syntax and should never need to change** when
+  the grammar changes.
 - **`grammar.py`** — the grammar itself, as data: a `GRAMMAR` dict mapping
   rule names to combinator trees, each with an `action` that builds the
   `Node` the interpreter expects. **This is the only file to edit to change
@@ -141,6 +144,7 @@ than clean backtracking (mirrors `check()`/`match()`).
 | `StructDecl` | `name`, `fields` |
 | `TypedefDecl` | `name`, `aliased_type` |
 | `VarDecl` | `mutability` (`const`/`val`/`var`), `declarators` |
+| `Declarator` | `name`, `type`, `initializer` |
 | `LetDecl` | `names`, `values` (and optionally `array_sizes`) |
 | `Block` | `declarations`, `statements` |
 | `IfStmt` | `condition`, `then`, `else` |
@@ -170,6 +174,15 @@ than clean backtracking (mirrors `check()`/`match()`).
 | `Identifier` | `name` |
 | `Grouping` | `expression` |
 | `WildcardPattern` | _(no fields)_ |
+| `MultiAssign` | `lvalues`, `values` |
+| `NamedArg` | `name`, `value` |
+| `Param` | `name`, `type` |
+| `Field` | `name`, `type` |
+| `InitializerList` | `values` |
+| `Type` | `name` |
+| `StructType` | `name` |
+| `StructDef` | `name`, `fields` |
+| `TupleType` | `elements` |
 
 ## Milestones
 

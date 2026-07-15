@@ -6,8 +6,8 @@ write an action that builds the Node the interpreter expects. grammar_engine.py
 (the thing that walks this table) never needs to change.
 
 Each GRAMMAR entry mirrors one (or a small cluster of) parsing method(s) from
-the original hand-written recursive-descent parser (see parser_legacy.py for
-the pre-refactor reference implementation) - method names are noted in
+the original hand-written recursive-descent parser that this module replaced
+(e.g. `if_stmt` corresponds to the old `parse_if_stmt`) - this is noted in
 comments for traceability.
 """
 

@@ -106,11 +106,16 @@ primitives from `grammar_engine.py`: `Term`/`Kw` (match a token), `Seq`
 (match parts in order), `Alt` (ordered choice), `Star`/`Plus`/`Opt`
 (repetition), `Ref` (reference another named rule, for recursion), `Cut`
 (marks "we're committed to this alternative — later failures are real
-errors, not backtracking"), `And`/`Not` (lookahead), plus helpers `chainl`
-(left-associative binary operators), `comma_list`, and `many_rec`
-(repetition with the same error-recovery behavior as the rest of the
-parser). Each rule's `action` builds the same `Node` AST the interpreter
-consumes.
+errors, not backtracking"), `And`/`Not` (lookahead), `Bind` (label a `Seq`
+capture so its `action` can read it by name), `Emit`/`Abort` (record an
+error unconditionally, optionally aborting the current derivation), plus
+helpers `chainl` (left-associative binary operators), `comma_list`, and
+`many_rec` (repetition with the same error-recovery behavior as the rest of
+the parser). For the handful of productions whose shape doesn't compose
+cleanly out of these (e.g. `type`, most statements), `Rule(fn)` adapts a
+plain Python function into a combinator — it's the most-used primitive in
+`grammar.py` in practice. Each rule's `action` (or `Rule` function) builds
+the same `Node` AST the interpreter consumes.
 
 Example — adding a new statement kind is one rule plus one line wiring it
 into the dispatcher:
@@ -233,6 +238,7 @@ guard  try     catch   finally throw   _
 | `StructDecl` | `name`, `fields` |
 | `TypedefDecl` | `name`, `aliased_type` |
 | `VarDecl` | `mutability` (`const`/`val`/`var`), `declarators` |
+| `Declarator` | `name`, `type`, `initializer` |
 | `LetDecl` | `names`, `values` |
 | `Block` | `declarations`, `statements` |
 | `IfStmt` | `condition`, `then`, `else` |
@@ -248,11 +254,28 @@ guard  try     catch   finally throw   _
 | `AssignExpr` | `target`, `value` |
 | `BinaryExpr` | `op`, `left`, `right` |
 | `UnaryExpr` | `op`, `operand` |
+| `RangeExpr` | `start`, `end` |
 | `CallExpr` | `callee`, `args` |
 | `IndexExpr` | `object`, `index` |
 | `MemberExpr` | `object`, `field`, `op` (`.`) |
 | `Literal` | `token_type`, `lexeme`, `value` |
 | `Identifier` | `name` |
+| `Grouping` | `expression` |
+| `WildcardPattern` | _(no fields)_ |
+| `MatchCase` | `pattern`, `body` or `value` |
+| `CatchClause` | `name`, `body` |
+| `LoopControlStmt` | `keyword` (`break`/`continue`) |
+| `BuiltinStmt` | `name` (`print`/`input`), `args` |
+| `ExprStmt` | `expression` |
+| `MultiAssign` | `lvalues`, `values` |
+| `NamedArg` | `name`, `value` |
+| `Param` | `name`, `type` |
+| `Field` | `name`, `type` |
+| `InitializerList` | `values` |
+| `Type` | `name` |
+| `StructType` | `name` |
+| `StructDef` | `name`, `fields` |
+| `TupleType` | `elements` |
 
 ---
 
@@ -274,7 +297,10 @@ The scanner recovers and continues after each error.
 
 ### Syntax errors (Parser)
 
-The parser uses recursive descent with error recovery — it synchronizes to the next statement boundary after each error and continues parsing, so all errors in a file are reported in one pass.
+The grammar engine has built-in error recovery — after a hard error it
+synchronizes to the next statement boundary and keeps parsing (see
+`many_rec` in "Changing the Grammar" above), so all errors in a file are
+reported in one pass.
 
 ---
 

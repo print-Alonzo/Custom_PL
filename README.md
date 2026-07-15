@@ -23,7 +23,10 @@ The language supports typed variable/constant declarations, control flow (if-els
 ```
 .
 ├── scanner.py                                  # Lexical analyzer
-├── parser.py                                   # Syntax analyzer / AST builder
+├── parser.py                                   # CLI driver: scans, runs the grammar engine, formats reports
+├── grammar.py                                  # The grammar, as data — edit THIS to change the language
+├── grammar_engine.py                           # Generic combinator engine that walks grammar.py — never edit for language changes
+├── ast_nodes.py                                # Node / ParseError / merge_type, shared by parser.py and grammar.py
 ├── prog1_calculator.src                        # Sample program 1
 ├── prog1_calculator_tokens.txt                 # Scanner output for prog1
 ├── prog2_loops_arrays.src                      # Sample program 2
@@ -87,6 +90,49 @@ python parser.py <source_file> --ast
 python parser.py prog1_calculator.src
 python parser.py prog4_structs_match_exceptions.src --ast
 ```
+
+---
+
+## Changing the Grammar
+
+The parser is table-driven: the grammar lives as declarative data in
+`grammar.py`, and a generic combinator engine (`grammar_engine.py`) walks
+that table to parse source files. Changing the language means editing
+`grammar.py` only — `grammar_engine.py` has no knowledge of this language's
+syntax and should never need to change.
+
+`grammar.py` builds a `GRAMMAR` dict of named rules out of a small set of
+primitives from `grammar_engine.py`: `Term`/`Kw` (match a token), `Seq`
+(match parts in order), `Alt` (ordered choice), `Star`/`Plus`/`Opt`
+(repetition), `Ref` (reference another named rule, for recursion), `Cut`
+(marks "we're committed to this alternative — later failures are real
+errors, not backtracking"), `And`/`Not` (lookahead), plus helpers `chainl`
+(left-associative binary operators), `comma_list`, and `many_rec`
+(repetition with the same error-recovery behavior as the rest of the
+parser). Each rule's `action` builds the same `Node` AST the interpreter
+consumes.
+
+Example — adding a new statement kind is one rule plus one line wiring it
+into the dispatcher:
+
+```python
+GRAMMAR["my_stmt"] = Seq(
+    Kw("mykeyword"), Cut(),
+    Bind("value", Ref("expression", fail_msg="Expected expression")),
+    Term(TT.SEMICOLON, msg="Expected ';' after mykeyword"),
+    action=lambda ps, c: Node("MyStmt", {"value": c["value"]}),
+)
+
+GRAMMAR["statement"] = Alt(
+    Ref("my_stmt"),   # add here
+    Ref("block"),
+    Ref("if_stmt"),
+    ...
+)
+```
+
+No other file needs to change. See `grammar.py`'s module docstring for more
+detail on the primitives.
 
 ---
 
